@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ECharts调试页面</title>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <style>
+        .debug-info {
+            background: #f5f5f5;
+            padding: 10px;
+            margin: 10px 0;
+            border-left: 4px solid #007bff;
+        }
+        .chart-container {
+            width: 100%;
+            height: 400px;
+            border: 2px solid #ddd;
+            margin: 20px 0;
+        }
+        .error { color: red; }
+        .success { color: green; }
+        .warning { color: orange; }
+    </style>
+</head>
+<body>
+    <h1>ECharts图表调试</h1>
+    
+    <div class="debug-info">
+        <h3>调试信息</h3>
+        <div id="debugInfo">正在检查...</div>
+    </div>
+    
+    <div class="debug-info">
+        <h3>系统状态</h3>
+        <div id="systemStatus">检查中...</div>
+    </div>
+    
+    <h2>测试图表</h2>
+    <div id="testChart" class="chart-container"></div>
+    
+    <h2>土壤类型分布</h2>
+    <div id="soilChart" class="chart-container"></div>
+
+    <script>
+        let debugLog = [];
+        
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            debugLog.push(`[${timestamp}] ${message}`);
+            console.log(`[${type.toUpperCase()}] ${message}`);
+            updateDebugInfo();
+        }
+        
+        function updateDebugInfo() {
+            document.getElementById('debugInfo').innerHTML = debugLog.map(msg => 
+                `<div>${msg}</div>`
+            ).join('');
+        }
+        
+        async function runDiagnostics() {
+            log('开始ECharts诊断...', 'info');
+            
+            // 1. 检查ECharts是否加载
+            if (typeof echarts === 'undefined') {
+                log('❌ ECharts库未加载', 'error');
+                return;
+            } else {
+                log('✅ ECharts库已加载，版本: ' + echarts.version, 'success');
+            }
+            
+            // 2. 测试基本图表
+            try {
+                const testChart = echarts.init(document.getElementById('testChart'));
+                const testOption = {
+                    title: { text: '测试图表' },
+                    xAxis: { data: ['A', 'B', 'C'] },
+                    yAxis: {},
+                    series: [{ type: 'bar', data: [1, 2, 3] }]
+                };
+                testChart.setOption(testOption);
+                log('✅ 基本图表渲染成功', 'success');
+            } catch (error) {
+                log('❌ 基本图表渲染失败: ' + error.message, 'error');
+            }
+            
+            // 3. 检查系统API
+            try {
+                log('检查系统初始化...', 'info');
+                const initResp = await fetch('http://localhost:5004/api/system/initialize', {
+                    method: 'POST'
+                });
+                const initResult = await initResp.json();
+                
+                if (initResult.status === 'success') {
+                    log('✅ 系统初始化成功', 'success');
+                    document.getElementById('systemStatus').innerHTML = 
+                        `<span class="success">✅ 系统就绪</span><br>` +
+                        `温度: ${initResult.data_summary.temperature_records}条<br>` +
+                        `降水: ${initResult.data_summary.precipitation_records}条<br>` +
+                        `土壤: ${initResult.data_summary.soil_records}条<br>` +
+                        `作物: ${initResult.data_summary.crop_types}种`;
+                } else {
+                    log('❌ 系统初始化失败: ' + initResult.message, 'error');
+                }
+                
+                // 4. 运行分析
+                log('运行数据分析...', 'info');
+                const analysisResp = await fetch('http://localhost:5004/api/analysis/run', {
+                    method: 'POST'
+                });
+                const analysisResult = await analysisResp.json();
+                
+                if (analysisResult.status === 'success') {
+                    log('✅ 数据分析完成', 'success');
+                } else {
+                    log('❌ 数据分析失败: ' + analysisResult.message, 'error');
+                    return;
+                }
+                
+                // 5. 测试土壤数据API
+                log('获取土壤分析数据...', 'info');
+                const soilResp = await fetch('http://localhost:5004/api/echarts/soil_analysis');
+                const soilResult = await soilResp.json();
+                
+                if (soilResult.status === 'success') {
+                    log('✅ 土壤数据获取成功', 'success');
+                    
+                    const charts = soilResult.charts;
+                    log(`土壤图表数据: ${Object.keys(charts).join(', ')}`, 'info');
+                    
+                    // 6. 渲染土壤饼图
+                    if (charts.soil_type_pie && charts.soil_type_pie.data) {
+                        try {
+                            const soilChart = echarts.init(document.getElementById('soilChart'));
+                            const soilOption = {
+                                title: { 
+                                    text: '湖南省土壤类型分布',
+                                    left: 'center'
+                                },
+                                tooltip: { 
+                                    trigger: 'item',
+                                    formatter: '{b}: {c}个样本 ({d}%)'
+                                },
+                                legend: {
+                                    orient: 'vertical',
+                                    left: 'left'
+                                },
+                                series: [{
+                                    name: '土壤类型',
+                                    type: 'pie',
+                                    radius: '50%',
+                                    data: charts.soil_type_pie.data,
+                                    emphasis: {
+                                        itemStyle: {
+                                            shadowBlur: 10,
+                                            shadowOffsetX: 0,
+                                            shadowColor: 'rgba(0, 0, 0, 0.5)'
+                                        }
+                                    }
+                                }]
+                            };
+                            
+                            soilChart.setOption(soilOption);
+                            log('✅ 土壤饼图渲染成功', 'success');
+                            log(`土壤类型数据: ${charts.soil_type_pie.data.length}种`, 'info');
+                            
+                        } catch (error) {
+                            log('❌ 土壤饼图渲染失败: ' + error.message, 'error');
+                        }
+                    } else {
+                        log('❌ 土壤饼图数据为空', 'error');
+                    }
+                    
+                } else {
+                    log('❌ 土壤数据获取失败: ' + soilResult.message, 'error');
+                }
+                
+            } catch (error) {
+                log('❌ API请求失败: ' + error.message, 'error');
+            }
+            
+            log('诊断完成', 'info');
+        }
+        
+        // 页面加载完成后开始诊断
+        window.addEventListener('load', runDiagnostics);
+        
+        // 窗口大小改变时重新调整图表
+        window.addEventListener('resize', function() {
+            if (window.testChart) window.testChart.resize();
+            if (window.soilChart) window.soilChart.resize();
+        });
+    </script>
+</body>
+</html>

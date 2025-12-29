@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>多准则适宜性区划 - 湖南省农业分析系统</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+        }
+        .navbar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .card {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            border: none;
+        }
+        .btn-back {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            color: white;
+        }
+        .zone-card {
+            border-left: 5px solid;
+            margin: 10px 0;
+            padding: 15px;
+        }
+        .zone-optimal { border-left-color: #4CAF50; background: #f1f8e9; }
+        .zone-suitable { border-left-color: #2196F3; background: #e3f2fd; }
+        .zone-marginal { border-left-color: #FF9800; background: #fff3e0; }
+        .zone-unsuitable { border-left-color: #F44336; background: #ffebee; }
+        .distribution-map {
+            width: 100%;
+            height: 600px;
+            min-height: 600px;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            background: #f8f9fa;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin: 8px 0;
+        }
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            margin-right: 10px;
+            border-radius: 4px;
+        }
+        .statistics-card {
+            text-align: center;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 10px 0;
+        }
+        .btn-generate {
+            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+            border: none;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <!-- 导航栏 -->
+    <nav class="navbar navbar-dark">
+        <div class="container-fluid">
+            <span class="navbar-brand">🗺️ 多准则适宜性区划</span>
+            <a href="/" class="btn btn-back">← 返回主页</a>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <!-- 区划生成控制 -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">🎯 区划生成控制</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <label class="form-label">选择作物类型</label>
+                        <select class="form-select" id="cropType">
+                            <option value="rice">🍚 水稻</option>
+                            <option value="corn">🌽 玉米</option>
+                            <option value="soybean">🫘 大豆</option>
+                            <option value="wheat">🌾 小麦</option>
+                            <option value="cotton">🌸 棉花</option>
+                            <option value="rapeseed">🌻 油菜</option>
+                            <option value="peanut">🥜 花生</option>
+                            <option value="sweet_potato">🍠 红薯</option>
+                            <option value="tobacco">🚬 烟草</option>
+                            <option value="tea">🍵 茶叶</option>
+                            <option value="citrus">🍊 柑橘</option>
+                            <option value="vegetables">🥬 蔬菜</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">区划精度</label>
+                        <select class="form-select" id="precisionSelect">
+                            <option value="county">县级精度</option>
+                            <option value="township">乡镇级精度</option>
+                            <option value="village">村级精度</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="text-center mt-3">
+                    <button class="btn btn-generate btn-lg" onclick="generateZoning()">🗺️ 生成适宜性区划图</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 空间分布图 -->
+        <div class="card" id="mapCard" style="display: none;">
+            <div class="card-header">
+                <h5 class="card-title mb-0">🌍 空间分布图</h5>
+            </div>
+            <div class="card-body">
+                <div id="distributionMap" class="distribution-map"></div>
+            </div>
+        </div>
+
+        <!-- 区划统计 -->
+        <div class="card" id="statisticsCard" style="display: none;">
+            <div class="card-header">
+                <h5 class="card-title mb-0">📊 区划统计分析</h5>
+            </div>
+            <div class="card-body">
+                <div class="row" id="statisticsContent">
+                    <!-- 统计内容将通过JavaScript动态生成 -->
+                </div>
+            </div>
+        </div>
+
+        <!-- 适宜性分区详情 -->
+        <div class="card" id="zonesCard" style="display: none;">
+            <div class="card-header">
+                <h5 class="card-title mb-0">📋 适宜性分区详情</h5>
+            </div>
+            <div class="card-body">
+                <!-- 最适宜区 -->
+                <div class="zone-card zone-optimal">
+                    <h6>🟢 最适宜区</h6>
+                    <div id="optimalZoneContent">
+                        <!-- 内容将通过JavaScript动态填充 -->
+                    </div>
+                </div>
+
+                <!-- 适宜区 -->
+                <div class="zone-card zone-suitable">
+                    <h6>🔵 适宜区</h6>
+                    <div id="suitableZoneContent">
+                        <!-- 内容将通过JavaScript动态填充 -->
+                    </div>
+                </div>
+
+                <!-- 较适宜区 -->
+                <div class="zone-card zone-marginal">
+                    <h6>🟡 较适宜区</h6>
+                    <div id="marginalZoneContent">
+                        <!-- 内容将通过JavaScript动态填充 -->
+                    </div>
+                </div>
+
+                <!-- 不适宜区 -->
+                <div class="zone-card zone-unsuitable">
+                    <h6>🔴 不适宜区</h6>
+                    <div id="unsuitableZoneContent">
+                        <!-- 内容将通过JavaScript动态填充 -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 图例说明 -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">📖 图例说明</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>🎨 适宜性等级颜色</h6>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: #4CAF50;"></div>
+                            <span>最适宜区 (评分 ≥ 80)</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: #2196F3;"></div>
+                            <span>适宜区 (评分 60-79)</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: #FF9800;"></div>
+                            <span>较适宜区 (评分 40-59)</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: #F44336;"></div>
+                            <span>不适宜区 (评分 < 40)</span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>📏 精度说明</h6>
+                        <ul class="list-unstyled">
+                            <li>• <strong>县级精度</strong>: 以县为单位进行区划</li>
+                            <li>• <strong>乡镇级精度</strong>: 以乡镇为单位进行区划</li>
+                            <li>• <strong>村级精度</strong>: 以村为单位进行区划</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        console.log('🗺️ 多准则适宜性区划页面启动');
+
+        let distributionChart = null;
+
+        // 生成适宜性区划
+        async function generateZoning() {
+            console.log('🎯 开始生成适宜性区划');
+            
+            const cropType = document.getElementById('cropType').value;
+            const precision = document.getElementById('precisionSelect').value;
+            
+            try {
+                const response = await fetch('/api/zoning/generate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        crop_type: cropType,
+                        precision: precision
+                    })
+                });
+
+                const result = await response.json();
+                
+                if (result.status === 'success') {
+                    displayZoningResults(result.zoning);
+                    console.log('✅ 适宜性区划生成成功');
+                } else {
+                    alert('区划生成失败: ' + result.message);
+                }
+            } catch (error) {
+                console.error('❌ 区划生成请求异常:', error);
+                // 显示模拟数据
+                displayMockZoningResults(cropType, precision);
+                
+                // 监听窗口大小变化，重新调整地图
+                window.addEventListener('resize', function() {
+                    if (distributionChart) {
+                        distributionChart.resize();
+                    }
+                });
+            }
+        }
+
+        // 显示区划结果
+        function displayZoningResults(zoning) {
+            // 显示空间分布图
+            displayDistributionMap(zoning.spatial_data);
+            
+            // 显示统计信息
+            displayStatistics(zoning.statistics);
+            
+            // 显示分区详情
+            displayZoneDetails(zoning.zones);
+            
+            // 显示所有结果卡片
+            document.getElementById('mapCard').style.display = 'block';
+            document.getElementById('statisticsCard').style.display = 'block';
+            document.getElementById('zonesCard').style.display = 'block';
+        }
+
+        // 显示空间分布图
+        function displayDistributionMap(spatialData) {
+            if (!distributionChart) {
+                distributionChart = echarts.init(document.getElementById('distributionMap'));
+            }
+
+            const option = {
+                title: {
+                    text: '作物种植适宜性空间分布',
+                    left: 'center',
+                    textStyle: {
+                        fontSize: 18,
+                        fontWeight: 'bold'
+                    }
+                },
+                tooltip: {
+                    trigger: 'item',
+                    formatter: function(params) {
+                        return `
+                            <div style="padding: 8px;">
+                                <strong>${params.data.name}</strong><br/>
+                                适宜性评分: ${params.data.score}<br/>
+                                等级: ${params.data.level}
+                            </div>
+                        `;
+                    }
+                },
+                visualMap: {
+                    min: 0,
+                    max: 100,
+                    text: ['高', '低'],
+                    realtime: false,
+                    calculable: true,
+                    inRange: {
+                        color: ['#F44336', '#FF9800', '#2196F3', '#4CAF50']
+                    },
+                    left: 'left',
+                    top: 'bottom'
+                },
+                geo: {
+                    map: 'hunan',
+                    roam: true,
+                    center: [112.5, 28.2],
+                    zoom: 1.2,
+                    scaleLimit: {
+                        min: 0.8,
+                        max: 3
+                    },
+                    itemStyle: {
+                        borderColor: '#fff',
+                        borderWidth: 2,
+                        areaColor: '#f0f0f0'
+                    },
+                    emphasis: {
+                        itemStyle: {
+                            areaColor: '#389BB7',
+                            borderWidth: 3
+                        }
+                    },
+                    layoutCenter: ['50%', '50%'],
+                    layoutSize: '80%'
+                },
+                series: [{
+                    name: '适宜性评分',
+                    type: 'map',
+                    geoIndex: 0,
+                    data: spatialData.map(item => ({
+                        name: item.name,
+                        value: item.score,
+                        level: item.level
+                    })),
+                    itemStyle: {
+                        borderColor: '#fff',
+                        borderWidth: 1
+                    },
+                    emphasis: {
+                        itemStyle: {
+                            borderWidth: 2
+                        }
+                    }
+                }]
+            };
+
+            // 注册湖南省地图
+            fetch('/static/hunan.json')
+                .then(response => response.json())
+                .then(hunanGeoJson => {
+                    echarts.registerMap('hunan', hunanGeoJson);
+                    distributionChart.setOption(option);
+                    
+                    // 确保图表正确渲染
+                    setTimeout(() => {
+                        distributionChart.resize();
+                    }, 100);
+                })
+                .catch(error => {
+                    console.error('❌ 湖南省地图数据加载失败:', error);
+                    // 使用默认中国地图并聚焦湖南
+                    option.geo.map = 'china';
+                    option.geo.center = [112.5, 28.2];
+                    option.geo.zoom = 6;
+                    option.geo.layoutSize = '60%';
+                    distributionChart.setOption(option);
+                    
+                    // 确保图表正确渲染
+                    setTimeout(() => {
+                        distributionChart.resize();
+                    }, 100);
+                });
+        }
+
+        // 显示统计信息
+        function displayStatistics(statistics) {
+            const statsContent = document.getElementById('statisticsContent');
+            
+            const stats = statistics || {
+                optimal: { count: 15, percentage: 25, area: 3250 },
+                suitable: { count: 28, percentage: 35, area: 4800 },
+                marginal: { count: 22, percentage: 25, area: 3100 },
+                unsuitable: { count: 12, percentage: 15, area: 1850 }
+            };
+
+            statsContent.innerHTML = `
+                <div class="col-md-3">
+                    <div class="statistics-card" style="background: #e8f5e8;">
+                        <h3 style="color: #4CAF50;">${stats.optimal.count}</h3>
+                        <p>最适宜区县数</p>
+                        <small>${stats.optimal.percentage}% | ${stats.optimal.area}km²</small>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="statistics-card" style="background: #e3f2fd;">
+                        <h3 style="color: #2196F3;">${stats.suitable.count}</h3>
+                        <p>适宜区县数</p>
+                        <small>${stats.suitable.percentage}% | ${stats.suitable.area}km²</small>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="statistics-card" style="background: #fff3e0;">
+                        <h3 style="color: #FF9800;">${stats.marginal.count}</h3>
+                        <p>较适宜区县数</p>
+                        <small>${stats.marginal.percentage}% | ${stats.marginal.area}km²</small>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="statistics-card" style="background: #ffebee;">
+                        <h3 style="color: #F44336;">${stats.unsuitable.count}</h3>
+                        <p>不适宜区县数</p>
+                        <small>${stats.unsuitable.percentage}% | ${stats.unsuitable.area}km²</small>
+                    </div>
+                </div>
+            `;
+        }
+
+        // 显示分区详情
+        function displayZoneDetails(zones) {
+            const mockZones = zones || {
+                optimal: ['长沙县', '浏阳市', '宁乡市', '望城区', '岳麓区'],
+                suitable: ['株洲县', '湘潭县', '衡阳县', '邵阳县', '岳阳县'],
+                marginal: ['常德市', '张家界市', '益阳市', '郴州市', '永州市'],
+                unsuitable: ['湘西州', '怀化市', '娄底市']
+            };
+
+            document.getElementById('optimalZoneContent').innerHTML = `
+                <p><strong>区域特点</strong>: 气候条件优越，土壤肥沃，水资源充足</p>
+                <p><strong>包含区域</strong>: ${mockZones.optimal.join('、')}</p>
+                <p><strong>种植建议</strong>: 可大规模种植，预期产量高，经济效益好</p>
+            `;
+
+            document.getElementById('suitableZoneContent').innerHTML = `
+                <p><strong>区域特点</strong>: 基本条件良好，部分因子需要改善</p>
+                <p><strong>包含区域</strong>: ${mockZones.suitable.join('、')}</p>
+                <p><strong>种植建议</strong>: 适合种植，需要适当的技术措施和管理</p>
+            `;
+
+            document.getElementById('marginalZoneContent').innerHTML = `
+                <p><strong>区域特点</strong>: 条件一般，存在限制因子</p>
+                <p><strong>包含区域</strong>: ${mockZones.marginal.join('、')}</p>
+                <p><strong>种植建议</strong>: 需要重点改良土壤或选择适应性品种</p>
+            `;
+
+            document.getElementById('unsuitableZoneContent').innerHTML = `
+                <p><strong>区域特点</strong>: 自然条件不适宜，限制因子较多</p>
+                <p><strong>包含区域</strong>: ${mockZones.unsuitable.join('、')}</p>
+                <p><strong>种植建议</strong>: 不建议种植该作物，可考虑其他替代作物</p>
+            `;
+        }
+
+        // 生成模拟空间数据
+        function generateMockSpatialData() {
+            const counties = [
+                '长沙市', '株洲市', '湘潭市', '衡阳市', '邵阳市', '岳阳市', 
+                '常德市', '张家界市', '益阳市', '郴州市', '永州市', '怀化市', 
+                '娄底市', '湘西州'
+            ];
+
+            return counties.map(county => ({
+                name: county,
+                value: Math.floor(Math.random() * 100),
+                score: Math.floor(Math.random() * 100),
+                level: getZoneLevel(Math.floor(Math.random() * 100))
+            }));
+        }
+
+        // 获取区域等级
+        function getZoneLevel(score) {
+            if (score >= 80) return '最适宜';
+            if (score >= 60) return '适宜';
+            if (score >= 40) return '较适宜';
+            return '不适宜';
+        }
+
+        // 显示模拟区划结果
+        function displayMockZoningResults(cropType, precision) {
+            console.log(`🌾 显示${cropType}作物的模拟区划结果`);
+            
+            const mockZoning = {
+                spatial_data: generateMockSpatialData(),
+                statistics: {
+                    optimal: { count: 15, percentage: 25, area: 3250 },
+                    suitable: { count: 28, percentage: 35, area: 4800 },
+                    marginal: { count: 22, percentage: 25, area: 3100 },
+                    unsuitable: { count: 12, percentage: 15, area: 1850 }
+                },
+                zones: {
+                    optimal: ['长沙县', '浏阳市', '宁乡市', '望城区', '岳麓区'],
+                    suitable: ['株洲县', '湘潭县', '衡阳县', '邵阳县', '岳阳县'],
+                    marginal: ['常德市', '张家界市', '益阳市', '郴州市', '永州市'],
+                    unsuitable: ['湘西州', '怀化市', '娄底市']
+                }
+            };
+
+            displayZoningResults(mockZoning);
+        }
+
+        // 监听窗口大小变化，重新调整地图
+        window.addEventListener('resize', function() {
+            if (distributionChart) {
+                distributionChart.resize();
+            }
+        });
+    </script>
+</body>
+</html>

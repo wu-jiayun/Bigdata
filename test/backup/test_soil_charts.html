@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>土壤图表测试</title>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <style>
+        .chart-container {
+            width: 100%;
+            height: 400px;
+            margin: 20px 0;
+            border: 1px solid #ddd;
+        }
+        .info {
+            padding: 10px;
+            background: #f5f5f5;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>湖南省土壤数据测试</h1>
+    
+    <div class="info" id="status">正在加载...</div>
+    
+    <h2>土壤类型分布</h2>
+    <div id="soilTypeChart" class="chart-container"></div>
+    
+    <h2>pH值分布</h2>
+    <div id="phChart" class="chart-container"></div>
+    
+    <h2>县市质量排名</h2>
+    <div id="qualityChart" class="chart-container"></div>
+
+    <script>
+        // 初始化图表
+        const soilTypeChart = echarts.init(document.getElementById('soilTypeChart'));
+        const phChart = echarts.init(document.getElementById('phChart'));
+        const qualityChart = echarts.init(document.getElementById('qualityChart'));
+        
+        async function loadSoilData() {
+            try {
+                document.getElementById('status').innerHTML = '正在初始化系统...';
+                
+                // 初始化系统
+                const initResp = await fetch('http://localhost:5004/api/system/initialize', {
+                    method: 'POST'
+                });
+                const initResult = await initResp.json();
+                console.log('初始化结果:', initResult);
+                
+                document.getElementById('status').innerHTML = '正在运行分析...';
+                
+                // 运行分析
+                const analysisResp = await fetch('http://localhost:5004/api/analysis/run', {
+                    method: 'POST'
+                });
+                const analysisResult = await analysisResp.json();
+                console.log('分析结果:', analysisResult);
+                
+                document.getElementById('status').innerHTML = '正在加载土壤图表...';
+                
+                // 获取土壤数据
+                const soilResp = await fetch('http://localhost:5004/api/echarts/soil_analysis');
+                const soilResult = await soilResp.json();
+                console.log('土壤数据:', soilResult);
+                
+                if (soilResult.status === 'success') {
+                    const charts = soilResult.charts;
+                    
+                    // 土壤类型饼图
+                    if (charts.soil_type_pie && charts.soil_type_pie.data) {
+                        soilTypeChart.setOption({
+                            title: { text: '湖南省土壤类型分布', left: 'center' },
+                            tooltip: { trigger: 'item' },
+                            legend: { orient: 'vertical', left: 'left' },
+                            series: [{
+                                name: '土壤类型',
+                                type: 'pie',
+                                radius: '50%',
+                                data: charts.soil_type_pie.data,
+                                emphasis: { itemStyle: { shadowBlur: 10 } }
+                            }]
+                        });
+                    }
+                    
+                    // pH分布图
+                    if (charts.ph_distribution && charts.ph_distribution.xAxis) {
+                        phChart.setOption({
+                            title: { text: '湖南省土壤pH值分布', left: 'center' },
+                            tooltip: { trigger: 'axis' },
+                            xAxis: { 
+                                type: 'category',
+                                data: charts.ph_distribution.xAxis 
+                            },
+                            yAxis: { type: 'value', name: '样本数量' },
+                            series: charts.ph_distribution.series
+                        });
+                    }
+                    
+                    // 县市质量排名
+                    if (charts.county_quality_ranking && charts.county_quality_ranking.xAxis) {
+                        qualityChart.setOption({
+                            title: { text: '湖南省县市土壤质量排名', left: 'center' },
+                            tooltip: { trigger: 'axis' },
+                            xAxis: { 
+                                type: 'category',
+                                data: charts.county_quality_ranking.xAxis,
+                                axisLabel: { rotate: 45 }
+                            },
+                            yAxis: { type: 'value', name: '质量评分' },
+                            series: charts.county_quality_ranking.series
+                        });
+                    }
+                    
+                    document.getElementById('status').innerHTML = `
+                        <strong>✅ 土壤数据加载成功！</strong><br>
+                        - 土壤类型: ${charts.soil_type_pie ? charts.soil_type_pie.data.length : 0} 种<br>
+                        - pH分类: ${charts.ph_distribution ? charts.ph_distribution.xAxis.length : 0} 类<br>
+                        - 县市排名: ${charts.county_quality_ranking ? charts.county_quality_ranking.xAxis.length : 0} 个县市
+                    `;
+                } else {
+                    document.getElementById('status').innerHTML = `❌ 错误: ${soilResult.message}`;
+                }
+                
+            } catch (error) {
+                console.error('加载失败:', error);
+                document.getElementById('status').innerHTML = `❌ 加载失败: ${error.message}`;
+            }
+        }
+        
+        // 页面加载完成后开始加载数据
+        window.addEventListener('load', loadSoilData);
+        
+        // 窗口大小改变时重新调整图表
+        window.addEventListener('resize', function() {
+            soilTypeChart.resize();
+            phChart.resize();
+            qualityChart.resize();
+        });
+    </script>
+</body>
+</html>

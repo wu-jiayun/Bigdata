@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ECharts详细诊断</title>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ccc; }
+        .chart-container { width: 400px; height: 300px; border: 1px solid #999; margin: 10px 0; }
+        .log { background: #f5f5f5; padding: 10px; font-family: monospace; white-space: pre-wrap; max-height: 200px; overflow-y: auto; }
+        .success { color: green; }
+        .error { color: red; }
+        .warning { color: orange; }
+    </style>
+</head>
+<body>
+    <h1>ECharts详细诊断测试</h1>
+    
+    <div class="test-section">
+        <h2>1. 基础ECharts测试</h2>
+        <div id="basicChart" class="chart-container"></div>
+        <button onclick="testBasicECharts()">测试基础ECharts</button>
+    </div>
+    
+    <div class="test-section">
+        <h2>2. DOM元素检查</h2>
+        <button onclick="checkDOMElements()">检查所有图表容器</button>
+    </div>
+    
+    <div class="test-section">
+        <h2>3. 模块加载测试</h2>
+        <button onclick="testModuleLoading()">测试模块加载</button>
+    </div>
+    
+    <div class="test-section">
+        <h2>4. API数据测试</h2>
+        <button onclick="testAPIData()">测试API数据</button>
+    </div>
+    
+    <div class="test-section">
+        <h2>5. 完整流程测试</h2>
+        <button onclick="testFullWorkflow()">测试完整工作流程</button>
+    </div>
+    
+    <div class="test-section">
+        <h2>诊断日志</h2>
+        <div id="log" class="log"></div>
+        <button onclick="clearLog()">清空日志</button>
+    </div>
+    
+    <script>
+        function log(message, type = 'info') {
+            const logDiv = document.getElementById('log');
+            const timestamp = new Date().toLocaleTimeString();
+            const className = type === 'error' ? 'error' : type === 'success' ? 'success' : type === 'warning' ? 'warning' : '';
+            logDiv.innerHTML += `<span class="${className}">[${timestamp}] ${message}</span>\n`;
+            logDiv.scrollTop = logDiv.scrollHeight;
+            console.log(`[${timestamp}] ${message}`);
+        }
+        
+        function clearLog() {
+            document.getElementById('log').innerHTML = '';
+        }
+        
+        function testBasicECharts() {
+            log('=== 开始基础ECharts测试 ===');
+            
+            try {
+                // 检查ECharts是否加载
+                if (typeof echarts === 'undefined') {
+                    log('❌ ECharts库未加载', 'error');
+                    return;
+                }
+                log('✅ ECharts库已加载，版本: ' + echarts.version, 'success');
+                
+                // 获取容器
+                const container = document.getElementById('basicChart');
+                if (!container) {
+                    log('❌ 找不到图表容器', 'error');
+                    return;
+                }
+                log('✅ 图表容器存在', 'success');
+                
+                // 初始化图表
+                const chart = echarts.init(container);
+                if (!chart) {
+                    log('❌ ECharts实例初始化失败', 'error');
+                    return;
+                }
+                log('✅ ECharts实例初始化成功', 'success');
+                
+                // 设置选项
+                const option = {
+                    title: { text: '基础测试图表' },
+                    tooltip: {},
+                    xAxis: { data: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'] },
+                    yAxis: {},
+                    series: [{
+                        name: '测试数据',
+                        type: 'bar',
+                        data: [10, 20, 30, 40, 50]
+                    }]
+                };
+                
+                chart.setOption(option);
+                log('✅ 基础图表渲染成功', 'success');
+                
+            } catch (error) {
+                log('❌ 基础ECharts测试失败: ' + error.message, 'error');
+            }
+        }
+        
+        function checkDOMElements() {
+            log('=== 开始DOM元素检查 ===');
+            
+            const chartIds = [
+                'tempTrendChart', 'precipPatternChart', 'climateHeatmapChart',
+                'soilTypePieChart', 'phDistChart', 'countyQualityChart',
+                'suitabilityDistChart', 'cropRadarChart', 'limitingFactorsChart',
+                'zoningScatterChart', 'optimizationMapChart'
+            ];
+            
+            let foundCount = 0;
+            chartIds.forEach(id => {
+                const element = document.getElementById(id);
+                if (element) {
+                    foundCount++;
+                    log(`✅ 找到容器: ${id}`, 'success');
+                } else {
+                    log(`❌ 缺失容器: ${id}`, 'error');
+                }
+            });
+            
+            log(`📊 容器检查完成: ${foundCount}/${chartIds.length} 个容器存在`);
+        }
+        
+        async function testModuleLoading() {
+            log('=== 开始模块加载测试 ===');
+            
+            try {
+                // 检查全局对象
+                log('检查全局模块对象:');
+                log('- window.SparkCore: ' + (!!window.SparkCore));
+                log('- window.SystemControl: ' + (!!window.SystemControl));
+                log('- window.ChartLoader: ' + (!!window.ChartLoader));
+                
+                if (window.SparkCore && window.SparkCore.charts) {
+                    const charts = window.SparkCore.charts;
+                    const chartCount = Object.keys(charts).length;
+                    log(`✅ SparkCore.charts 存在，包含 ${chartCount} 个图表实例`, 'success');
+                    
+                    // 检查每个图表实例
+                    Object.keys(charts).forEach(key => {
+                        if (charts[key]) {
+                            log(`  ✅ ${key}: 已初始化`, 'success');
+                        } else {
+                            log(`  ❌ ${key}: 未初始化`, 'error');
+                        }
+                    });
+                } else {
+                    log('❌ SparkCore.charts 不存在', 'error');
+                }
+                
+            } catch (error) {
+                log('❌ 模块加载测试失败: ' + error.message, 'error');
+            }
+        }
+        
+        async function testAPIData() {
+            log('=== 开始API数据测试 ===');
+            
+            try {
+                // 测试系统初始化
+                log('1. 测试系统初始化...');
+                const initResp = await fetch('/api/system/initialize', { method: 'POST' });
+                const initResult = await initResp.json();
+                
+                if (initResult.status === 'success') {
+                    log('✅ 系统初始化成功', 'success');
+                    log('数据摘要: ' + JSON.stringify(initResult.data_summary));
+                } else {
+                    log('❌ 系统初始化失败: ' + initResult.message, 'error');
+                    return;
+                }
+                
+                // 测试分析运行
+                log('2. 测试分析运行...');
+                const analysisResp = await fetch('/api/analysis/run', { method: 'POST' });
+                const analysisResult = await analysisResp.json();
+                
+                if (analysisResult.status === 'success') {
+                    log('✅ 分析运行成功', 'success');
+                } else {
+                    log('❌ 分析运行失败: ' + analysisResult.message, 'error');
+                    return;
+                }
+                
+                // 测试各个图表API
+                const apis = [
+                    '/api/echarts/climate_trends',
+                    '/api/echarts/soil_analysis',
+                    '/api/echarts/crop_suitability',
+                    '/api/echarts/zoning_optimization'
+                ];
+                
+                log('3. 测试图表API...');
+                for (const api of apis) {
+                    try {
+                        const resp = await fetch(api);
+                        const result = await resp.json();
+                        
+                        if (result.status === 'success') {
+                            const chartCount = Object.keys(result.charts).length;
+                            log(`✅ ${api}: 成功 (${chartCount}个图表)`, 'success');
+                        } else {
+                            log(`❌ ${api}: 失败 - ${result.message}`, 'error');
+                        }
+                    } catch (error) {
+                        log(`❌ ${api}: 请求异常 - ${error.message}`, 'error');
+                    }
+                }
+                
+            } catch (error) {
+                log('❌ API数据测试失败: ' + error.message, 'error');
+            }
+        }
+        
+        async function testFullWorkflow() {
+            log('=== 开始完整工作流程测试 ===');
+            
+            try {
+                // 1. 检查基础环境
+                log('1. 检查基础环境...');
+                if (typeof echarts === 'undefined') {
+                    log('❌ ECharts未加载', 'error');
+                    return;
+                }
+                
+                // 2. 检查DOM容器
+                log('2. 检查DOM容器...');
+                const tempChart = document.getElementById('tempTrendChart');
+                if (!tempChart) {
+                    log('❌ 主页面图表容器不存在，可能不在正确页面', 'warning');
+                    return;
+                }
+                
+                // 3. 初始化图表实例
+                log('3. 尝试初始化图表实例...');
+                const chart = echarts.init(tempChart);
+                if (!chart) {
+                    log('❌ 图表实例初始化失败', 'error');
+                    return;
+                }
+                log('✅ 图表实例初始化成功', 'success');
+                
+                // 4. 测试简单数据渲染
+                log('4. 测试简单数据渲染...');
+                const option = {
+                    title: { text: '测试图表' },
+                    xAxis: { data: ['A', 'B', 'C'] },
+                    yAxis: {},
+                    series: [{ type: 'bar', data: [1, 2, 3] }]
+                };
+                
+                chart.setOption(option);
+                log('✅ 简单数据渲染成功', 'success');
+                
+                // 5. 测试API数据渲染
+                log('5. 测试API数据渲染...');
+                await testAPIData();
+                
+            } catch (error) {
+                log('❌ 完整工作流程测试失败: ' + error.message, 'error');
+            }
+        }
+        
+        // 页面加载完成后自动运行基础测试
+        window.onload = function() {
+            log('🚀 页面加载完成，开始自动诊断...', 'success');
+            setTimeout(() => {
+                testBasicECharts();
+                checkDOMElements();
+                testModuleLoading();
+            }, 1000);
+        };
+    </script>
+</body>
+</html>

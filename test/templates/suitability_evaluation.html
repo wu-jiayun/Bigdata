@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>种植适宜性评价模型 - 湖南省农业分析系统</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+        }
+        .navbar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .card {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            border: none;
+        }
+        .btn-back {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            color: white;
+        }
+        .factor-item {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 10px 0;
+        }
+        .weight-slider {
+            width: 100%;
+        }
+        .weight-display {
+            font-weight: bold;
+            color: #667eea;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+        }
+        .btn-success {
+            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+            border: none;
+        }
+        .btn-warning {
+            background: linear-gradient(135deg, #FF9800 0%, #F57C00 100%);
+            border: none;
+        }
+        .evaluation-result {
+            background: linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 100%);
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <!-- 导航栏 -->
+    <nav class="navbar navbar-dark">
+        <div class="container-fluid">
+            <span class="navbar-brand">🌱 种植适宜性评价模型</span>
+            <a href="/" class="btn btn-back">← 返回主页</a>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <!-- 评价因子配置 -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">📊 评价因子配置</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>🌡️ 气候因子</h6>
+                        <div class="factor-item">
+                            <label class="form-label">年平均温度 (°C)</label>
+                            <input type="range" class="form-range weight-slider" id="tempWeight" min="0" max="100" value="25">
+                            <div class="d-flex justify-content-between">
+                                <span>权重: <span class="weight-display" id="tempWeightDisplay">25%</span></span>
+                                <div>
+                                    <label>最小值:</label>
+                                    <input type="number" class="form-control form-control-sm d-inline-block" style="width:80px;" id="tempMin" value="10">
+                                    <label>最大值:</label>
+                                    <input type="number" class="form-control form-control-sm d-inline-block" style="width:80px;" id="tempMax" value="25">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="factor-item">
+                            <label class="form-label">冬季最低温 (°C)</label>
+                            <input type="range" class="form-range weight-slider" id="winterTempWeight" min="0" max="100" value="20">
+                            <div class="d-flex justify-content-between">
+                                <span>权重: <span class="weight-display" id="winterTempWeightDisplay">20%</span></span>
+                                <div>
+                                    <label>最小值:</label>
+                                    <input type="number" class="form-control form-control-sm d-inline-block" style="width:80px;" id="winterTempMin" value="-5">
+                                    <label>最大值:</label>
+                                    <input type="number" class="form-control form-control-sm d-inline-block" style="width:80px;" id="winterTempMax" value="5">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="factor-item">
+                            <label class="form-label">年降水量 (mm)</label>
+                            <input type="range" class="form-range weight-slider" id="precipitationWeight" min="0" max="100" value="15">
+                            <div class="d-flex justify-content-between">
+                                <span>权重: <span class="weight-display" id="precipitationWeightDisplay">15%</span></span>
+                                <div>
+                                    <label>最小值:</label>
+                                    <input type="number" class="form-control form-control-sm d-inline-block" style="width:80px;" id="precipitationMin" value="800">
+                                    <label>最大值:</label>
+                                    <input type="number" class="form-control form-control-sm d-inline-block" style="width:80px;" id="precipitationMax" value="1600">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <h6>🏔️ 土壤因子</h6>
+                        <div class="factor-item">
+                            <label class="form-label">土壤pH值</label>
+                            <input type="range" class="form-range weight-slider" id="phWeight" min="0" max="100" value="25">
+                            <div class="d-flex justify-content-between">
+                                <span>权重: <span class="weight-display" id="phWeightDisplay">25%</span></span>
+                                <div>
+                                    <label>最小值:</label>
+                                    <input type="number" class="form-control form-control-sm d-inline-block" style="width:80px;" id="phMin" value="6.0" step="0.1">
+                                    <label>最大值:</label>
+                                    <input type="number" class="form-control form-control-sm d-inline-block" style="width:80px;" id="phMax" value="7.5" step="0.1">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="factor-item">
+                            <label class="form-label">有机质含量 (%)</label>
+                            <input type="range" class="form-range weight-slider" id="organicWeight" min="0" max="100" value="15">
+                            <div class="d-flex justify-content-between">
+                                <span>权重: <span class="weight-display" id="organicWeightDisplay">15%</span></span>
+                                <div>
+                                    <label>最小值:</label>
+                                    <input type="number" class="form-control form-control-sm d-inline-block" style="width:80px;" id="organicMin" value="2.0" step="0.1">
+                                    <label>最大值:</label>
+                                    <input type="number" class="form-control form-control-sm d-inline-block" style="width:80px;" id="organicMax" value="4.0" step="0.1">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="text-center mt-3">
+                    <button class="btn btn-primary me-2" onclick="calculateSuitability()">🧮 计算适宜性评价</button>
+                    <button class="btn btn-success me-2" onclick="resetWeights()">🔄 重置权重</button>
+                    <button class="btn btn-warning" onclick="saveModel()">💾 保存模型</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 评价结果显示 -->
+        <div class="card" id="resultsCard" style="display: none;">
+            <div class="card-header">
+                <h5 class="card-title mb-0">📈 适宜性评价结果</h5>
+            </div>
+            <div class="card-body">
+                <div class="evaluation-result" id="evaluationResult">
+                    <!-- 结果将通过JavaScript动态填充 -->
+                </div>
+            </div>
+        </div>
+
+        <!-- 作物选择和预设模型 -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">🌾 作物预设模型</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3">
+                        <button class="btn btn-outline-primary w-100 mb-2" onclick="loadCropModel('rice')">🍚 水稻模型</button>
+                    </div>
+                    <div class="col-md-3">
+                        <button class="btn btn-outline-success w-100 mb-2" onclick="loadCropModel('corn')">🌽 玉米模型</button>
+                    </div>
+                    <div class="col-md-3">
+                        <button class="btn btn-outline-warning w-100 mb-2" onclick="loadCropModel('soybean')">🫘 大豆模型</button>
+                    </div>
+                    <div class="col-md-3">
+                        <button class="btn btn-outline-info w-100 mb-2" onclick="loadCropModel('wheat')">🌾 小麦模型</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        console.log('🌱 种植适宜性评价模型页面启动');
+
+        // 权重滑块事件监听
+        document.addEventListener('DOMContentLoaded', function() {
+            const sliders = document.querySelectorAll('.weight-slider');
+            sliders.forEach(slider => {
+                slider.addEventListener('input', function() {
+                    updateWeightDisplay(this);
+                    normalizeWeights();
+                });
+            });
+            
+            // 初始化权重显示
+            sliders.forEach(slider => updateWeightDisplay(slider));
+        });
+
+        // 更新权重显示
+        function updateWeightDisplay(slider) {
+            const displayId = slider.id + 'Display';
+            const display = document.getElementById(displayId);
+            if (display) {
+                display.textContent = slider.value + '%';
+            }
+        }
+
+        // 权重归一化（确保总和为100%）
+        function normalizeWeights() {
+            const sliders = document.querySelectorAll('.weight-slider');
+            let total = 0;
+            
+            sliders.forEach(slider => {
+                total += parseInt(slider.value);
+            });
+            
+            if (total !== 100) {
+                const factor = 100 / total;
+                sliders.forEach(slider => {
+                    const newValue = Math.round(parseInt(slider.value) * factor);
+                    slider.value = newValue;
+                    updateWeightDisplay(slider);
+                });
+            }
+        }
+
+        // 计算适宜性评价
+        async function calculateSuitability() {
+            console.log('🧮 开始计算适宜性评价');
+            
+            // 收集评价因子和权重
+            const factors = {
+                temperature: {
+                    weight: parseInt(document.getElementById('tempWeight').value),
+                    min: parseFloat(document.getElementById('tempMin').value),
+                    max: parseFloat(document.getElementById('tempMax').value)
+                },
+                winterTemp: {
+                    weight: parseInt(document.getElementById('winterTempWeight').value),
+                    min: parseFloat(document.getElementById('winterTempMin').value),
+                    max: parseFloat(document.getElementById('winterTempMax').value)
+                },
+                precipitation: {
+                    weight: parseInt(document.getElementById('precipitationWeight').value),
+                    min: parseFloat(document.getElementById('precipitationMin').value),
+                    max: parseFloat(document.getElementById('precipitationMax').value)
+                },
+                ph: {
+                    weight: parseInt(document.getElementById('phWeight').value),
+                    min: parseFloat(document.getElementById('phMin').value),
+                    max: parseFloat(document.getElementById('phMax').value)
+                },
+                organic: {
+                    weight: parseInt(document.getElementById('organicWeight').value),
+                    min: parseFloat(document.getElementById('organicMin').value),
+                    max: parseFloat(document.getElementById('organicMax').value)
+                }
+            };
+
+            try {
+                const response = await fetch('/api/suitability/evaluate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ factors: factors })
+                });
+
+                const result = await response.json();
+                
+                if (result.status === 'success') {
+                    displayResults(result.evaluation);
+                    document.getElementById('resultsCard').style.display = 'block';
+                    console.log('✅ 适宜性评价计算成功');
+                } else {
+                    alert('评价计算失败: ' + result.message);
+                }
+            } catch (error) {
+                console.error('❌ 适宜性评价请求异常:', error);
+                alert('无法连接到服务器，请检查网络连接');
+            }
+        }
+
+        // 显示评价结果
+        function displayResults(evaluation) {
+            const resultDiv = document.getElementById('evaluationResult');
+            
+            let html = `
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>📊 综合适宜性评分</h6>
+                        <div class="progress mb-3" style="height: 25px;">
+                            <div class="progress-bar bg-success" style="width: ${evaluation.overall_score}%">
+                                ${evaluation.overall_score.toFixed(1)}分
+                            </div>
+                        </div>
+                        
+                        <h6>🏆 适宜性等级</h6>
+                        <span class="badge ${getSuitabilityBadgeClass(evaluation.suitability_level)} fs-6">
+                            ${evaluation.suitability_level}
+                        </span>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <h6>📈 各因子得分</h6>
+                        <ul class="list-unstyled">
+            `;
+            
+            for (const [factor, score] of Object.entries(evaluation.factor_scores)) {
+                html += `<li>• ${getFactorName(factor)}: <strong>${score.toFixed(1)}分</strong></li>`;
+            }
+            
+            html += `
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="mt-3">
+                    <h6>💡 优化建议</h6>
+                    <div class="alert alert-info">
+                        ${evaluation.recommendations.join('<br>• ')}
+                    </div>
+                </div>
+            `;
+            
+            resultDiv.innerHTML = html;
+        }
+
+        // 获取适宜性等级徽章样式
+        function getSuitabilityBadgeClass(level) {
+            switch(level) {
+                case '最适宜': return 'bg-success';
+                case '适宜': return 'bg-primary';
+                case '较适宜': return 'bg-warning';
+                case '不适宜': return 'bg-danger';
+                default: return 'bg-secondary';
+            }
+        }
+
+        // 获取因子中文名称
+        function getFactorName(factor) {
+            const names = {
+                'temperature': '年平均温度',
+                'winterTemp': '冬季最低温',
+                'precipitation': '年降水量',
+                'ph': '土壤pH值',
+                'organic': '有机质含量'
+            };
+            return names[factor] || factor;
+        }
+
+        // 重置权重
+        function resetWeights() {
+            document.getElementById('tempWeight').value = 25;
+            document.getElementById('winterTempWeight').value = 20;
+            document.getElementById('precipitationWeight').value = 15;
+            document.getElementById('phWeight').value = 25;
+            document.getElementById('organicWeight').value = 15;
+            
+            const sliders = document.querySelectorAll('.weight-slider');
+            sliders.forEach(slider => updateWeightDisplay(slider));
+            
+            console.log('🔄 权重已重置');
+        }
+
+        // 保存模型
+        function saveModel() {
+            const modelData = {
+                name: prompt('请输入模型名称:'),
+                factors: {
+                    temperature: {
+                        weight: parseInt(document.getElementById('tempWeight').value),
+                        min: parseFloat(document.getElementById('tempMin').value),
+                        max: parseFloat(document.getElementById('tempMax').value)
+                    },
+                    // ... 其他因子
+                }
+            };
+            
+            if (modelData.name) {
+                localStorage.setItem('suitability_model_' + modelData.name, JSON.stringify(modelData));
+                alert('模型已保存到本地存储');
+                console.log('💾 模型保存成功:', modelData.name);
+            }
+        }
+
+        // 加载作物预设模型
+        function loadCropModel(cropType) {
+            const models = {
+                rice: {
+                    tempWeight: 30, tempMin: 20, tempMax: 30,
+                    winterTempWeight: 15, winterTempMin: -2, winterTempMax: 8,
+                    precipitationWeight: 25, precipitationMin: 1000, precipitationMax: 1800,
+                    phWeight: 20, phMin: 6.0, phMax: 7.0,
+                    organicWeight: 10, organicMin: 2.5, organicMax: 4.5
+                },
+                corn: {
+                    tempWeight: 25, tempMin: 18, tempMax: 28,
+                    winterTempWeight: 10, winterTempMin: -10, winterTempMax: 5,
+                    precipitationWeight: 30, precipitationMin: 600, precipitationMax: 1200,
+                    phWeight: 25, phMin: 6.5, phMax: 7.5,
+                    organicWeight: 10, organicMin: 2.0, organicMax: 4.0
+                },
+                soybean: {
+                    tempWeight: 20, tempMin: 15, tempMax: 25,
+                    winterTempWeight: 15, winterTempMin: -5, winterTempMax: 5,
+                    precipitationWeight: 25, precipitationMin: 500, precipitationMax: 1000,
+                    phWeight: 30, phMin: 6.2, phMax: 7.2,
+                    organicWeight: 10, organicMin: 1.8, organicMax: 3.5
+                },
+                wheat: {
+                    tempWeight: 25, tempMin: 12, tempMax: 22,
+                    winterTempWeight: 25, winterTempMin: -8, winterTempMax: 3,
+                    precipitationWeight: 20, precipitationMin: 400, precipitationMax: 800,
+                    phWeight: 20, phMin: 6.8, phMax: 7.8,
+                    organicWeight: 10, organicMin: 2.2, organicMax: 3.8
+                }
+            };
+
+            const model = models[cropType];
+            if (model) {
+                // 设置权重
+                Object.keys(model).forEach(key => {
+                    const element = document.getElementById(key);
+                    if (element) {
+                        element.value = model[key];
+                        if (key.includes('Weight')) {
+                            updateWeightDisplay(element);
+                        }
+                    }
+                });
+                
+                console.log(`🌾 已加载${cropType}作物模型`);
+                alert(`已加载${getCropName(cropType)}种植适宜性模型`);
+            }
+        }
+
+        // 获取作物中文名称
+        function getCropName(cropType) {
+            const names = {
+                'rice': '水稻',
+                'corn': '玉米', 
+                'soybean': '大豆',
+                'wheat': '小麦'
+            };
+            return names[cropType] || cropType;
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,1388 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>沃土规划师 - Spark农业分析系统</title>
+    
+    <!-- 使用本地Bootstrap CSS，避免CDN超时 -->
+    <style>
+        /* Bootstrap核心样式 - 内联避免CDN问题 */
+        * { box-sizing: border-box; }
+        body { margin: 0; font-family: Arial, sans-serif; background: #f8f9fa; min-height: 100vh; }
+        .container-fluid { width: 100%; padding: 0 15px; }
+        .row { display: flex; flex-wrap: wrap; margin: 0 -15px; }
+        .col-12 { flex: 0 0 100%; max-width: 100%; padding: 0 15px; }
+        .col-md-4 { flex: 0 0 33.333333%; max-width: 33.333333%; padding: 0 15px; }
+        .col-md-6 { flex: 0 0 50%; max-width: 50%; padding: 0 15px; }
+        .mt-4 { margin-top: 1.5rem; }
+        .mb-4 { margin-bottom: 1.5rem; }
+        .me-2 { margin-right: 0.5rem; }
+        .me-3 { margin-right: 1rem; }
+        .w-100 { width: 100%; }
+        
+        /* 简化导航栏 */
+        .navbar {
+            background: #343a40;
+            padding: 1rem 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+        
+        .navbar-brand {
+            color: white !important;
+            font-size: 1.5rem;
+            font-weight: 700;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+        }
+        
+        .navbar-text {
+            color: rgba(255,255,255,0.9);
+            display: flex;
+            align-items: center;
+            font-weight: 500;
+        }
+        
+        /* 现代化卡片设计 */
+        .card {
+            background: white;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            margin-bottom: 1.5rem;
+            overflow: hidden;
+        }
+        
+        .card-header {
+            background: #f8f9fa;
+            color: #333;
+            font-weight: normal;
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid #dee2e6;
+            display: flex;
+            align-items: center;
+        }
+        
+        .card-body {
+            padding: 2rem 1.5rem;
+        }
+        
+        /* 简化按钮设计 */
+        .btn {
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            padding: 8px 16px;
+            font-weight: normal;
+            cursor: pointer;
+            display: inline-block;
+            text-decoration: none;
+            background: white;
+            color: #333;
+        }
+        
+        .btn-spark {
+            background: #007bff;
+            color: white;
+            border-color: #007bff;
+        }
+        
+        .btn-spark:hover {
+            background: #0056b3;
+            border-color: #0056b3;
+            color: white;
+        }
+        
+        .btn-success {
+            background: #28a745;
+            color: white;
+            border-color: #28a745;
+        }
+        
+        .btn-success:hover {
+            background: #1e7e34;
+            border-color: #1e7e34;
+            color: white;
+        }
+        
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+        
+        .btn-lg {
+            padding: 15px 40px;
+            font-size: 1.1rem;
+        }
+        
+        /* 简化警告框 */
+        .alert {
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 12px 16px;
+            margin-bottom: 1rem;
+        }
+        
+        .alert-info {
+            background: #d1ecf1;
+            border-color: #bee5eb;
+            color: #0c5460;
+        }
+        
+        .alert-success {
+            background: #d4edda;
+            border-color: #c3e6cb;
+            color: #155724;
+        }
+        
+        .alert-secondary {
+            background: #e2e3e5;
+            border-color: #d6d8db;
+            color: #383d41;
+        }
+        
+        /* 简化标签页 */
+        .nav-tabs {
+            border-bottom: 1px solid #dee2e6;
+            margin-bottom: 1rem;
+        }
+        
+        .nav-link {
+            border: 1px solid transparent;
+            border-radius: 4px 4px 0 0;
+            color: #495057;
+            padding: 8px 16px;
+            margin-bottom: -1px;
+            text-decoration: none;
+            background: none;
+        }
+        
+        .nav-link:hover {
+            color: #007bff;
+            border-color: #e9ecef #e9ecef #dee2e6;
+        }
+        
+        .nav-link.active {
+            background: white;
+            color: #495057;
+            border-color: #dee2e6 #dee2e6 white;
+        }
+        
+        .tab-content {
+            background: transparent;
+        }
+        
+        .tab-pane {
+            display: none;
+        }
+        
+        .tab-pane.show.active {
+            display: block;
+        }
+        
+        /* 图表容器优化 */
+        .chart-container {
+            width: 100%;
+            height: 400px;
+            margin: 20px 0;
+            min-height: 400px;
+            position: relative;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            background: white;
+        }
+        
+        /* 状态指示器 */
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+            animation: pulse 2s infinite;
+        }
+        
+        .status-ready { 
+            background-color: #00b894;
+        }
+        
+        .status-loading { 
+            background-color: #fdcb6e;
+        }
+        
+        .status-error { 
+            background-color: #e17055;
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+        
+        /* 图标字体 - 使用Unicode符号替代Font Awesome */
+        .icon-rocket::before { content: "🚀"; margin-right: 8px; }
+        .icon-chart::before { content: "📊"; margin-right: 8px; }
+        .icon-cogs::before { content: "⚙️"; margin-right: 8px; }
+        .icon-seedling::before { content: "🌱"; margin-right: 8px; }
+        .icon-thermometer::before { content: "🌡️"; margin-right: 8px; }
+        .icon-mountain::before { content: "🏔️"; margin-right: 8px; }
+        .icon-map::before { content: "🗺️"; margin-right: 8px; }
+        .icon-info::before { content: "ℹ️"; margin-right: 8px; }
+        .icon-check::before { content: "✅"; margin-right: 8px; }
+        .icon-warning::before { content: "⚠️"; margin-right: 8px; }
+        
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .col-md-4, .col-md-6 {
+                flex: 0 0 100%;
+                max-width: 100%;
+            }
+            
+            .btn-lg {
+                padding: 12px 25px;
+                font-size: 1rem;
+            }
+            
+            .card-body {
+                padding: 1.5rem 1rem;
+            }
+        }
+        
+        /* 加载动画 */
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+            margin-right: 10px;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+    
+    <!-- ECharts库 -->
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+</head>
+<body>
+    <!-- 现代化导航栏 -->
+    <nav class="navbar">
+        <div class="container-fluid">
+            <div class="row w-100 align-items-center">
+                <div class="col-md-6">
+                    <a class="navbar-brand" href="#">
+                        <span class="icon-seedling"></span>沃土规划师 - Spark农业分析系统
+                    </a>
+                </div>
+                <div class="col-md-6" style="text-align: right;">
+                    <span class="navbar-text">
+                        <span id="systemStatus" class="status-indicator status-loading"></span>
+                        <span id="statusText">系统状态: 未初始化</span>
+                    </span>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid mt-4">
+        <!-- 现代化控制面板 -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <span class="icon-cogs"></span>系统控制面板
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <button id="initSystemBtn" class="btn btn-spark btn-lg me-3">
+                                    <span class="icon-rocket"></span>初始化Spark系统
+                                </button>
+                            </div>
+                            <div class="col-md-6">
+                                <div id="systemInfo" class="alert alert-info">
+                                    <span class="icon-info"></span>
+                                    请先初始化Spark系统以连接MySQL数据库
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row mt-3">
+                            <div class="col-md-6">
+                                <button id="runAnalysisBtn" class="btn btn-success btn-lg w-100" disabled>
+                                    <span class="icon-chart"></span>运行综合分析
+                                </button>
+                            </div>
+                            <div class="col-md-6">
+                                <div id="analysisInfo" class="alert alert-secondary">
+                                    <span class="icon-info"></span>
+                                    请先初始化系统，然后运行综合分析
+                                </div>
+                            </div>
+                        </div>
+                        
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- 现代化标签页导航 -->
+        <ul class="nav nav-tabs" id="chartTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="climate-tab" data-bs-toggle="tab" data-bs-target="#climate" type="button" role="tab">
+                    <span class="icon-thermometer"></span>气候趋势分析
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="soil-tab" data-bs-toggle="tab" data-bs-target="#soil" type="button" role="tab">
+                    <span class="icon-mountain"></span>土壤分布分析
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="crop-tab" data-bs-toggle="tab" data-bs-target="#crop" type="button" role="tab">
+                    <span class="icon-seedling"></span>作物适宜性分析
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="zoning-tab" data-bs-toggle="tab" data-bs-target="#zoning" type="button" role="tab">
+                    <span class="icon-map"></span>区划优化建议
+                </button>
+            </li>
+        </ul>
+
+        <!-- 图表内容区域 -->
+        <div class="tab-content mt-4" id="chartTabsContent">
+            <!-- 气候分析 -->
+            <div class="tab-pane fade show active" id="climate" role="tabpanel">
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="card">
+                            <div class="card-header">🌡️ 月度温度变化趋势</div>
+                            <div class="card-body">
+                                <div id="tempTrendChart" class="chart-container"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card">
+                            <div class="card-header">📈 年度温度趋势</div>
+                            <div class="card-body">
+                                <div id="precipPatternChart" class="chart-container"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card">
+                            <div class="card-header">🔥 季节温度对比</div>
+                            <div class="card-body">
+                                <div id="climateHeatmapChart" class="chart-container"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 土壤分析 -->
+            <div class="tab-pane fade" id="soil" role="tabpanel">
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="card">
+                            <div class="card-header">🏔️ 土壤类型分布</div>
+                            <div class="card-body">
+                                <div id="soilTypePieChart" class="chart-container"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card">
+                            <div class="card-header">⚗️ pH值分布</div>
+                            <div class="card-body">
+                                <div id="phDistChart" class="chart-container"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card">
+                            <div class="card-header">🏆 县市土壤质量排名</div>
+                            <div class="card-body">
+                                <div id="countyQualityChart" class="chart-container"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 作物分析 -->
+            <div class="tab-pane fade" id="crop" role="tabpanel">
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="card">
+                            <div class="card-header">🌾 作物分类分布</div>
+                            <div class="card-body">
+                                <div id="suitabilityDistChart" class="chart-container"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card">
+                            <div class="card-header">🌡️ 作物温度需求</div>
+                            <div class="card-body">
+                                <div id="cropRadarChart" class="chart-container"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card">
+                            <div class="card-header">⚖️ 作物pH适应性</div>
+                            <div class="card-body">
+                                <div id="limitingFactorsChart" class="chart-container"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 区划分析 -->
+            <div class="tab-pane fade" id="zoning" role="tabpanel">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header">🗺️ 区划优化分布</div>
+                            <div class="card-body">
+                                <div id="zoningScatterChart" class="chart-container"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header">🎯 最佳种植区域</div>
+                            <div class="card-body">
+                                <div id="optimizationMapChart" class="chart-container"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        console.log('🚀 启动优化版农业分析系统...');
+        
+        // 全局变量
+        window.SparkCore = {
+            charts: {},
+            systemStatus: 'uninitialized'
+        };
+        
+        
+        // 简化的标签页切换
+        function initTabs() {
+            const tabs = document.querySelectorAll('[data-bs-toggle="tab"]');
+            tabs.forEach(tab => {
+                tab.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    
+                    // 移除所有active类
+                    tabs.forEach(t => t.classList.remove('active'));
+                    document.querySelectorAll('.tab-pane').forEach(pane => {
+                        pane.classList.remove('show', 'active');
+                    });
+                    
+                    // 添加active类到当前标签
+                    this.classList.add('active');
+                    const target = document.querySelector(this.getAttribute('data-bs-target'));
+                    if (target) {
+                        target.classList.add('show', 'active');
+                        
+                        // 标签页切换后，调整图表尺寸
+                        setTimeout(() => {
+                            console.log('🔄 标签页切换，调整图表尺寸');
+                            const chartContainers = target.querySelectorAll('.chart-container');
+                            chartContainers.forEach(container => {
+                                const chartId = container.id;
+                                if (chartId && window.SparkCore.charts[chartId]) {
+                                    try {
+                                        window.SparkCore.charts[chartId].resize();
+                                        console.log(`✅ ${chartId} 尺寸调整成功`);
+                                    } catch (error) {
+                                        console.error(`❌ ${chartId} 尺寸调整失败:`, error);
+                                    }
+                                }
+                            });
+                        }, 100);
+                    }
+                });
+            });
+        }
+        
+        // 初始化图表容器
+        function initCharts() {
+            const chartIds = [
+                'tempTrendChart', 'precipPatternChart', 'climateHeatmapChart',
+                'soilTypePieChart', 'phDistChart', 'countyQualityChart',
+                'suitabilityDistChart', 'cropRadarChart', 'limitingFactorsChart',
+                'zoningScatterChart', 'optimizationMapChart'
+            ];
+
+            console.log('🔄 初始化图表容器...');
+            
+            chartIds.forEach(id => {
+                const element = document.getElementById(id);
+                if (element && typeof echarts !== 'undefined') {
+                    try {
+                        // 清除容器内容并设置尺寸
+                        element.innerHTML = '';
+                        element.style.width = '100%';
+                        element.style.height = '400px';
+                        
+                        // 初始化ECharts实例
+                        window.SparkCore.charts[id] = echarts.init(element);
+                        console.log(`✅ ${id} 初始化成功`);
+                    } catch (error) {
+                        console.error(`❌ ${id} 初始化失败:`, error);
+                    }
+                }
+            });
+        }
+        
+        
+        // 更新系统状态
+        function updateSystemStatus(status, message) {
+            const statusIndicator = document.getElementById('systemStatus');
+            const statusText = document.getElementById('statusText');
+            
+            if (statusIndicator && statusText) {
+                statusIndicator.className = `status-indicator status-${status}`;
+                statusText.textContent = `系统状态: ${message}`;
+            }
+        }
+        
+        // 显示加载动画
+        function showLoading(buttonId) {
+            const button = document.getElementById(buttonId);
+            if (button) {
+                button.innerHTML = '<span class="loading-spinner"></span>' + button.textContent;
+                button.disabled = true;
+            }
+        }
+        
+        function hideLoading(buttonId, originalText) {
+            const button = document.getElementById(buttonId);
+            if (button) {
+                button.innerHTML = originalText;
+                button.disabled = false;
+            }
+        }
+        
+        // 初始化系统
+        async function initializeSystem() {
+            console.log('🚀 初始化系统...');
+            showLoading('initSystemBtn');
+            updateSystemStatus('loading', '初始化中...');
+            
+            try {
+                const response = await fetch('/api/system/initialize', { method: 'POST' });
+                const result = await response.json();
+                
+                if (result.status === 'success') {
+                    updateSystemStatus('ready', '系统就绪');
+                    
+                    document.getElementById('systemInfo').innerHTML = 
+                        '<span class="icon-check"></span>系统初始化成功！';
+                    document.getElementById('systemInfo').className = 'alert alert-success';
+                    document.getElementById('runAnalysisBtn').disabled = false;
+                    hideLoading('initSystemBtn', '<span class="icon-rocket"></span>初始化Spark系统');
+                    showNotification('系统初始化成功！', 'success');
+                } else {
+                    updateSystemStatus('error', '初始化失败');
+                    document.getElementById('systemInfo').innerHTML = 
+                        '<span class="icon-warning"></span>初始化失败: ' + result.message;
+                    hideLoading('initSystemBtn', '<span class="icon-rocket"></span>初始化Spark系统');
+                    showNotification('初始化失败', 'error');
+                }
+            } catch (error) {
+                updateSystemStatus('error', '连接失败');
+                hideLoading('initSystemBtn', '<span class="icon-rocket"></span>初始化Spark系统');
+                showNotification('网络连接失败', 'error');
+                console.error('❌ 初始化异常:', error);
+            }
+        }
+        
+        // 运行分析
+        async function runAnalysis() {
+            console.log('🔬 运行分析...');
+            showLoading('runAnalysisBtn');
+            updateSystemStatus('loading', '分析中...');
+            
+            try {
+                const response = await fetch('/api/analysis/run', { method: 'POST' });
+                const result = await response.json();
+                
+                if (result.status === 'success') {
+                    updateSystemStatus('ready', '分析完成');
+                    document.getElementById('analysisInfo').innerHTML = 
+                        '<span class="icon-check"></span>分析完成！正在加载图表...';
+                    document.getElementById('analysisInfo').className = 'alert alert-success';
+                    
+                    await loadAllCharts();
+                    hideLoading('runAnalysisBtn', '<span class="icon-chart"></span>运行综合分析');
+                } else {
+                    updateSystemStatus('error', '分析失败');
+                    document.getElementById('analysisInfo').innerHTML = 
+                        '<span class="icon-warning"></span>分析失败: ' + result.message;
+                    hideLoading('runAnalysisBtn', '<span class="icon-chart"></span>运行综合分析');
+                }
+            } catch (error) {
+                updateSystemStatus('error', '分析异常');
+                hideLoading('runAnalysisBtn', '<span class="icon-chart"></span>运行综合分析');
+                console.error('❌ 分析异常:', error);
+            }
+        }
+        
+        // 加载所有图表 - 使用统一的重新初始化方法
+        async function loadAllCharts() {
+            console.log('📊 开始加载所有图表...');
+            
+            try {
+                // 重新初始化所有图表
+                const chartIds = [
+                    'tempTrendChart', 'precipPatternChart', 'climateHeatmapChart',
+                    'soilTypePieChart', 'phDistChart', 'countyQualityChart',
+                    'suitabilityDistChart', 'cropRadarChart', 'limitingFactorsChart',
+                    'zoningScatterChart', 'optimizationMapChart'
+                ];
+                
+                chartIds.forEach(id => {
+                    const element = document.getElementById(id);
+                    if (element) {
+                        element.innerHTML = '';
+                        element.style.width = '100%';
+                        element.style.height = '400px';
+                        
+                        if (typeof echarts !== 'undefined') {
+                            window.SparkCore.charts[id] = echarts.init(element);
+                            console.log(`🔄 ${id} 重新初始化完成`);
+                        }
+                    }
+                });
+                
+                // 先加载示例数据，再加载API数据
+                setTimeout(async () => {
+                    // 加载原有的示例图表数据
+                    loadDemoCharts();
+                    
+                    // 然后加载API数据
+                    await loadClimateCharts();
+                    await loadSoilCharts();
+                    await loadCropCharts();
+                    await loadZoningCharts();
+                    
+                    console.log('🎉 所有图表加载完成');
+                }, 500);
+                
+            } catch (error) {
+                console.error('❌ 图表加载失败:', error);
+            }
+        }
+        
+        // 显示图表加载状态
+        function showChartLoading(chartId, message) {
+            console.log(`⏳ ${chartId}: ${message}`);
+        }
+        
+        // 加载示例图表数据
+        function loadDemoCharts() {
+            console.log('📊 加载示例图表数据...');
+            
+            // 示例土壤类型饼图
+            if (window.SparkCore.charts.soilTypePieChart) {
+                const option = {
+                    title: { text: '土壤类型分布', left: 'center' },
+                    tooltip: { trigger: 'item' },
+                    series: [{
+                        type: 'pie',
+                        radius: '60%',
+                        data: [
+                            { value: 35, name: '红壤' },
+                            { value: 25, name: '黄壤' },
+                            { value: 20, name: '水稻土' },
+                            { value: 15, name: '紫色土' },
+                            { value: 5, name: '其他' }
+                        ]
+                    }]
+                };
+                window.SparkCore.charts.soilTypePieChart.setOption(option);
+                console.log('✅ 土壤类型图示例加载完成');
+            }
+            
+            // 示例作物分布图
+            if (window.SparkCore.charts.suitabilityDistChart) {
+                const option = {
+                    title: { text: '作物分类分布', left: 'center' },
+                    tooltip: { trigger: 'item' },
+                    series: [{
+                        type: 'pie',
+                        radius: '60%',
+                        data: [
+                            { value: 30, name: '粮食作物' },
+                            { value: 25, name: '经济作物' },
+                            { value: 20, name: '蔬菜' },
+                            { value: 15, name: '水果' },
+                            { value: 10, name: '其他' }
+                        ]
+                    }]
+                };
+                window.SparkCore.charts.suitabilityDistChart.setOption(option);
+                console.log('✅ 作物分布图示例加载完成');
+            }
+            
+            // 示例县市质量排名
+            if (window.SparkCore.charts.countyQualityChart) {
+                const option = {
+                    title: { text: '县市土壤质量排名', left: 'center' },
+                    tooltip: { trigger: 'axis' },
+                    xAxis: { 
+                        type: 'category',
+                        data: ['长沙县', '浏阳市', '宁乡市', '望城区', '岳麓区'],
+                        axisLabel: { rotate: 45 }
+                    },
+                    yAxis: { type: 'value', name: '质量评分' },
+                    series: [{
+                        name: '质量评分',
+                        type: 'bar',
+                        data: [85, 82, 78, 75, 72]
+                    }]
+                };
+                window.SparkCore.charts.countyQualityChart.setOption(option);
+                console.log('✅ 县市质量图示例加载完成');
+            }
+            
+            console.log('🎉 示例图表加载完成');
+        }
+        
+        // 加载气候图表
+        async function loadClimateCharts() {
+            try {
+                console.log('🌡️ 加载气候图表...');
+                
+                // 显示加载状态
+                showChartLoading('tempTrendChart', '正在加载温度趋势数据...');
+                showChartLoading('precipPatternChart', '正在加载降水模式数据...');
+                showChartLoading('climateHeatmapChart', '正在加载气候热力图数据...');
+                
+                const response = await fetch('/api/echarts/climate_trends');
+                const result = await response.json();
+                
+                if (result.status === 'success') {
+                    const charts_data = result.charts;
+                    console.log('📈 气候图表数据:', Object.keys(charts_data));
+                    
+                    // 温度趋势图
+                    if (charts_data.temperature_trend) {
+                        const tempElement = document.getElementById('tempTrendChart');
+                        if (tempElement) {
+                            // 强制清除并重新初始化
+                            tempElement.innerHTML = '';
+                            tempElement.style.width = '100%';
+                            tempElement.style.height = '400px';
+                            
+                            const chart = echarts.init(tempElement);
+                            window.SparkCore.charts.tempTrendChart = chart;
+                            
+                            chart.setOption({
+                                title: { 
+                                    text: '月度温度变化趋势',
+                                    left: 'center',
+                                    textStyle: { fontSize: 16, fontWeight: 'bold' }
+                                },
+                                tooltip: { trigger: 'axis' },
+                                xAxis: { 
+                                    type: 'category',
+                                    data: charts_data.temperature_trend.xAxis || [],
+                                    axisLabel: { fontSize: 12 }
+                                },
+                                yAxis: { 
+                                    type: 'value', 
+                                    name: '温度(°C)',
+                                    nameTextStyle: { fontSize: 12 }
+                                },
+                                series: charts_data.temperature_trend.series || []
+                            });
+                            console.log('✅ 温度趋势图设置完成');
+                        }
+                    }
+                    
+                    // 年度趋势图
+                    if (charts_data.annual_trend && window.SparkCore.charts.precipPatternChart) {
+                        window.SparkCore.charts.precipPatternChart.setOption({
+                            title: { 
+                                text: '年度温度趋势',
+                                left: 'center',
+                                textStyle: { fontSize: 16, fontWeight: 'bold' }
+                            },
+                            tooltip: { trigger: 'axis' },
+                            xAxis: { 
+                                type: 'category',
+                                data: charts_data.annual_trend.xAxis || []
+                            },
+                            yAxis: { 
+                                type: 'value', 
+                                name: '温度(°C)'
+                            },
+                            series: charts_data.annual_trend.series || []
+                        });
+                        console.log('✅ 年度趋势图设置完成');
+                    }
+                    
+                    console.log('✅ 气候图表加载完成');
+                } else {
+                    console.error('❌ 气候图表API返回错误:', result.message);
+                }
+            } catch (error) {
+                console.error('❌ 加载气候图表失败:', error);
+            }
+        }
+        
+        // 加载土壤图表
+        async function loadSoilCharts() {
+            try {
+                console.log('🏔️ 加载土壤图表...');
+                
+                // 显示加载状态
+                showChartLoading('soilTypePieChart', '正在加载土壤类型数据...');
+                showChartLoading('phDistChart', '正在加载pH分布数据...');
+                showChartLoading('countyQualityChart', '正在加载县市质量数据...');
+                
+                const response = await fetch('/api/echarts/soil_analysis');
+                const result = await response.json();
+                
+                if (result.status === 'success') {
+                    const charts_data = result.charts;
+                    console.log('📈 土壤图表数据:', Object.keys(charts_data));
+                    
+                    // 土壤类型分布饼图
+                    if (charts_data.soil_type_pie && window.SparkCore.charts.soilTypePieChart) {
+                        window.SparkCore.charts.soilTypePieChart.setOption({
+                            title: { 
+                                text: '土壤类型分布',
+                                left: 'center',
+                                textStyle: { fontSize: 16, fontWeight: 'bold' }
+                            },
+                            tooltip: { 
+                                trigger: 'item',
+                                formatter: '{a} <br/>{b}: {c} ({d}%)'
+                            },
+                            legend: { 
+                                orient: 'vertical', 
+                                left: 'left'
+                            },
+                            series: [{
+                                name: '土壤类型',
+                                type: 'pie',
+                                radius: '60%',
+                                data: charts_data.soil_type_pie.data || []
+                            }]
+                        });
+                        console.log('✅ 土壤类型饼图设置完成');
+                    }
+                    
+                    // pH分布柱状图
+                    if (charts_data.ph_distribution && window.SparkCore.charts.phDistChart) {
+                        window.SparkCore.charts.phDistChart.setOption({
+                            title: { 
+                                text: 'pH值分布',
+                                left: 'center',
+                                textStyle: { fontSize: 16, fontWeight: 'bold' }
+                            },
+                            tooltip: { trigger: 'axis' },
+                            xAxis: { 
+                                type: 'category',
+                                data: charts_data.ph_distribution.xAxis || []
+                            },
+                            yAxis: { 
+                                type: 'value', 
+                                name: '样本数量'
+                            },
+                            series: charts_data.ph_distribution.series || []
+                        });
+                        console.log('✅ pH分布图设置完成');
+                    }
+                    
+                    // 县市质量排名
+                    if (charts_data.county_quality_ranking && window.SparkCore.charts.countyQualityChart) {
+                        window.SparkCore.charts.countyQualityChart.setOption({
+                            title: { 
+                                text: '县市土壤质量排名',
+                                left: 'center',
+                                textStyle: { fontSize: 16, fontWeight: 'bold' }
+                            },
+                            tooltip: { trigger: 'axis' },
+                            xAxis: { 
+                                type: 'category',
+                                data: charts_data.county_quality_ranking.xAxis || [],
+                                axisLabel: { rotate: 45 }
+                            },
+                            yAxis: { 
+                                type: 'value', 
+                                name: '质量评分'
+                            },
+                            series: charts_data.county_quality_ranking.series || []
+                        });
+                        console.log('✅ 县市质量排名图设置完成');
+                    }
+                    
+                    console.log('✅ 土壤图表加载完成');
+                } else {
+                    console.error('❌ 土壤图表API返回错误:', result.message);
+                }
+            } catch (error) {
+                console.error('❌ 加载土壤图表失败:', error);
+            }
+        }
+        
+        // 加载作物图表
+        async function loadCropCharts() {
+            try {
+                console.log('🌾 加载作物图表...');
+                
+                // 显示加载状态
+                showChartLoading('suitabilityDistChart', '正在加载作物分类数据...');
+                showChartLoading('cropRadarChart', '正在加载作物温度需求数据...');
+                showChartLoading('limitingFactorsChart', '正在加载作物pH适应性数据...');
+                
+                const response = await fetch('/api/echarts/crop_suitability');
+                const result = await response.json();
+                
+                if (result.status === 'success') {
+                    const charts_data = result.charts;
+                    console.log('📈 作物图表数据:', Object.keys(charts_data));
+                    
+                    // 作物分类分布
+                    if (charts_data.suitability_distribution && window.SparkCore.charts.suitabilityDistChart) {
+                        window.SparkCore.charts.suitabilityDistChart.setOption({
+                            title: { 
+                                text: '作物分类分布',
+                                left: 'center',
+                                textStyle: { fontSize: 16, fontWeight: 'bold' }
+                            },
+                            tooltip: { 
+                                trigger: 'item',
+                                formatter: '{a} <br/>{b}: {c}种 ({d}%)'
+                            },
+                            legend: { 
+                                orient: 'vertical', 
+                                left: 'left'
+                            },
+                            series: [{
+                                name: '作物分类',
+                                type: 'pie',
+                                radius: '60%',
+                                data: charts_data.suitability_distribution.data || []
+                            }]
+                        });
+                        console.log('✅ 作物分类分布图设置完成');
+                    }
+                    
+                    // 作物温度需求
+                    if (charts_data.crop_advantages_radar && window.SparkCore.charts.cropRadarChart) {
+                        window.SparkCore.charts.cropRadarChart.setOption({
+                            title: { 
+                                text: '作物温度需求',
+                                left: 'center',
+                                textStyle: { fontSize: 16, fontWeight: 'bold' }
+                            },
+                            tooltip: { trigger: 'axis' },
+                            xAxis: { 
+                                type: 'category',
+                                data: charts_data.crop_advantages_radar.xAxis || []
+                            },
+                            yAxis: { 
+                                type: 'value', 
+                                name: '温度(°C)'
+                            },
+                            series: charts_data.crop_advantages_radar.series || []
+                        });
+                        console.log('✅ 作物温度需求图设置完成');
+                    }
+                    
+                    // 作物pH适应性
+                    if (charts_data.limiting_factors_pie && window.SparkCore.charts.limitingFactorsChart) {
+                        window.SparkCore.charts.limitingFactorsChart.setOption({
+                            title: { 
+                                text: '作物pH适应性',
+                                left: 'center',
+                                textStyle: { fontSize: 16, fontWeight: 'bold' }
+                            },
+                            tooltip: { 
+                                trigger: 'item',
+                                formatter: '{a} <br/>{b}: {c}种作物 ({d}%)'
+                            },
+                            legend: { 
+                                orient: 'vertical', 
+                                left: 'left'
+                            },
+                            series: [{
+                                name: 'pH适应性',
+                                type: 'pie',
+                                radius: '60%',
+                                data: charts_data.limiting_factors_pie.data || []
+                            }]
+                        });
+                        console.log('✅ 作物pH适应性图设置完成');
+                    }
+                    
+                    console.log('✅ 作物图表加载完成');
+                } else {
+                    console.error('❌ 作物图表API返回错误:', result.message);
+                }
+            } catch (error) {
+                console.error('❌ 加载作物图表失败:', error);
+            }
+        }
+        
+        // 加载区划图表
+        async function loadZoningCharts() {
+            try {
+                console.log('🗺️ 加载区划图表...');
+                
+                // 显示加载状态
+                showChartLoading('zoningScatterChart', '正在加载区划优化数据...');
+                showChartLoading('optimizationMapChart', '正在加载最佳种植区域数据...');
+                
+                const response = await fetch('/api/echarts/zoning_optimization');
+                const result = await response.json();
+                
+                if (result.status === 'success') {
+                    const charts_data = result.charts;
+                    console.log('📈 区划图表数据:', Object.keys(charts_data));
+                    
+                    // 区划优化散点图
+                    if (charts_data.zoning_scatter && window.SparkCore.charts.zoningScatterChart) {
+                        window.SparkCore.charts.zoningScatterChart.setOption({
+                            title: { 
+                                text: '区划优化分布',
+                                left: 'center',
+                                textStyle: { fontSize: 16, fontWeight: 'bold' }
+                            },
+                            tooltip: { 
+                                trigger: 'item',
+                                formatter: function(params) {
+                                    return `${params.data[2]}<br/>pH值: ${params.data[0]}<br/>质量评分: ${params.data[1]}`;
+                                }
+                            },
+                            xAxis: { 
+                                type: 'value', 
+                                name: 'pH值'
+                            },
+                            yAxis: { 
+                                type: 'value', 
+                                name: '质量评分'
+                            },
+                            series: charts_data.zoning_scatter.series || []
+                        });
+                        console.log('✅ 区划优化散点图设置完成');
+                    }
+                    
+                    // 最佳种植区域
+                    if (charts_data.optimization_map && window.SparkCore.charts.optimizationMapChart) {
+                        const mapData = charts_data.optimization_map.series[0].data || [];
+                        const cityNames = mapData.map(item => item[2] || '未知城市');
+                        const cityValues = mapData.map((item, index) => index + 1);
+                        
+                        window.SparkCore.charts.optimizationMapChart.setOption({
+                            title: { 
+                                text: '最佳种植区域',
+                                left: 'center',
+                                textStyle: { fontSize: 16, fontWeight: 'bold' }
+                            },
+                            tooltip: { trigger: 'axis' },
+                            xAxis: { 
+                                type: 'category',
+                                data: cityNames,
+                                axisLabel: { rotate: 45 }
+                            },
+                            yAxis: { 
+                                type: 'value', 
+                                name: '优化排名'
+                            },
+                            series: [{
+                                name: '优化排名',
+                                type: 'bar',
+                                data: cityValues,
+                                itemStyle: {
+                                    color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                                        {offset: 0, color: '#83bff6'},
+                                        {offset: 0.5, color: '#188df0'},
+                                        {offset: 1, color: '#188df0'}
+                                    ])
+                                }
+                            }]
+                        });
+                        console.log('✅ 最佳种植区域图设置完成');
+                    }
+                    
+                    console.log('✅ 区划图表加载完成');
+                } else {
+                    console.error('❌ 区划图表API返回错误:', result.message);
+                }
+            } catch (error) {
+                console.error('❌ 加载区划图表失败:', error);
+            }
+        }
+        
+        
+        // 显示加载指示器
+        function showLoadingIndicator(message = '加载中...') {
+            let indicator = document.getElementById('loadingIndicator');
+            if (!indicator) {
+                indicator = document.createElement('div');
+                indicator.id = 'loadingIndicator';
+                indicator.style.cssText = `
+                    position: fixed;
+                    top: 50%;
+                    left: 50%;
+                    transform: translate(-50%, -50%);
+                    background: rgba(0,0,0,0.8);
+                    color: white;
+                    padding: 20px 30px;
+                    border-radius: 5px;
+                    z-index: 9999;
+                    text-align: center;
+                `;
+                document.body.appendChild(indicator);
+            }
+            
+            indicator.innerHTML = `
+                <div style="margin-bottom: 10px;">
+                    <div style="border: 3px solid #f3f3f3; border-top: 3px solid #007bff; border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; margin: 0 auto;"></div>
+                </div>
+                <div>${message}</div>
+            `;
+            indicator.style.display = 'block';
+        }
+        
+        // 隐藏加载指示器
+        function hideLoadingIndicator() {
+            const indicator = document.getElementById('loadingIndicator');
+            if (indicator) {
+                indicator.style.display = 'none';
+            }
+        }
+        
+        // 显示通知
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                padding: 15px 20px;
+                border-radius: 5px;
+                color: white;
+                z-index: 9999;
+                max-width: 300px;
+                animation: slideIn 0.3s ease-out;
+            `;
+            
+            switch(type) {
+                case 'success':
+                    notification.style.background = '#28a745';
+                    break;
+                case 'error':
+                    notification.style.background = '#dc3545';
+                    break;
+                default:
+                    notification.style.background = '#007bff';
+            }
+            
+            notification.textContent = message;
+            document.body.appendChild(notification);
+            
+            // 3秒后自动移除
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.parentNode.removeChild(notification);
+                }
+            }, 3000);
+        }
+        
+        
+        
+        // 直接初始化并显示图表
+        function initAndShowCharts() {
+            console.log('� 开始初始化并显示图表...');
+            
+            // 检查ECharts是否加载
+            if (typeof echarts === 'undefined') {
+                console.error('❌ ECharts库未加载，3秒后重试...');
+                setTimeout(initAndShowCharts, 3000);
+                return;
+            }
+            
+            // 图表配置
+            const chartConfigs = {
+                soilTypePieChart: {
+                    title: { text: '土壤类型分布', left: 'center' },
+                    tooltip: { trigger: 'item' },
+                    series: [{
+                        type: 'pie',
+                        radius: '60%',
+                        data: [
+                            { value: 35, name: '红壤' },
+                            { value: 25, name: '黄壤' },
+                            { value: 20, name: '水稻土' },
+                            { value: 15, name: '紫色土' },
+                            { value: 5, name: '其他' }
+                        ]
+                    }]
+                },
+                suitabilityDistChart: {
+                    title: { text: '作物分类分布', left: 'center' },
+                    tooltip: { trigger: 'item' },
+                    series: [{
+                        type: 'pie',
+                        radius: '60%',
+                        data: [
+                            { value: 30, name: '粮食作物' },
+                            { value: 25, name: '经济作物' },
+                            { value: 20, name: '蔬菜' },
+                            { value: 15, name: '水果' },
+                            { value: 10, name: '其他' }
+                        ]
+                    }]
+                },
+                countyQualityChart: {
+                    title: { text: '县市土壤质量排名', left: 'center' },
+                    tooltip: { trigger: 'axis' },
+                    xAxis: { 
+                        type: 'category',
+                        data: ['长沙县', '浏阳市', '宁乡市', '望城区', '岳麓区'],
+                        axisLabel: { rotate: 45 }
+                    },
+                    yAxis: { type: 'value', name: '质量评分' },
+                    series: [{
+                        name: '质量评分',
+                        type: 'bar',
+                        data: [85, 82, 78, 75, 72]
+                    }]
+                }
+            };
+            
+            // 所有图表ID
+            const allChartIds = [
+                'tempTrendChart', 'precipPatternChart', 'climateHeatmapChart',
+                'soilTypePieChart', 'phDistChart', 'countyQualityChart',
+                'suitabilityDistChart', 'cropRadarChart', 'limitingFactorsChart',
+                'zoningScatterChart', 'optimizationMapChart'
+            ];
+            
+            // 初始化所有图表
+            allChartIds.forEach(chartId => {
+                const element = document.getElementById(chartId);
+                if (element) {
+                    // 强制清除所有内容，包括加载动画
+                    element.innerHTML = '';
+                    element.style.width = '100%';
+                    element.style.height = '400px';
+                    element.style.minHeight = '400px';
+                    
+                    // 只处理有数据配置的图表
+                    if (chartConfigs[chartId]) {
+                        try {
+                            // 初始化ECharts实例
+                            const chart = echarts.init(element);
+                            
+                            // 设置图表选项
+                            chart.setOption(chartConfigs[chartId]);
+                            console.log(`✅ ${chartId} 数据图表创建成功`);
+                            
+                            // 保存图表实例
+                            window.SparkCore.charts[chartId] = chart;
+                            
+                        } catch (error) {
+                            console.error(`❌ ${chartId} 创建失败:`, error);
+                            // 如果ECharts失败，保持空白
+                            element.innerHTML = '';
+                        }
+                    } else {
+                        // 没有数据配置的图表保持空白
+                        console.log(`⏭️ ${chartId} 跳过，无数据配置`);
+                    }
+                }
+            });
+            
+            console.log('🎉 所有图表初始化完成');
+        }
+        
+        // 页面初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('📄 页面加载完成');
+            
+            // 添加CSS动画
+            const style = document.createElement('style');
+            style.textContent = `
+                @keyframes spin {
+                    0% { transform: rotate(0deg); }
+                    100% { transform: rotate(360deg); }
+                }
+                @keyframes slideIn {
+                    from { transform: translateX(100%); opacity: 0; }
+                    to { transform: translateX(0); opacity: 1; }
+                }
+                .chart-loading {
+                    position: absolute;
+                    top: 50%;
+                    left: 50%;
+                    transform: translate(-50%, -50%);
+                    text-align: center;
+                    color: #666;
+                }
+            `;
+            document.head.appendChild(style);
+            
+            // 初始化标签页
+            initTabs();
+            
+            // 直接初始化图表
+            setTimeout(initCharts, 1000);
+            
+            // 延迟加载示例数据
+            setTimeout(loadDemoCharts, 1500);
+            
+            // 绑定事件
+            const initBtn = document.getElementById('initSystemBtn');
+            const runBtn = document.getElementById('runAnalysisBtn');
+            
+            if (initBtn) {
+                initBtn.addEventListener('click', initializeSystem);
+            }
+            
+            if (runBtn) {
+                runBtn.addEventListener('click', runAnalysis);
+            }
+            
+            console.log('🎉 系统就绪');
+        });
+        
+        // 窗口大小改变时调整图表
+        window.addEventListener('resize', function() {
+            Object.values(window.SparkCore.charts).forEach(chart => {
+                if (chart && chart.resize) {
+                    chart.resize();
+                }
+            });
+        });
+    </script>
+</body>
+</html>

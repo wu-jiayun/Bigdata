@@ -1,0 +1,114 @@
+<!-- 分析结果内容组件 -->
+<div class="tab-content" id="analysisTabContent">
+    <!-- 气候趋势分析 -->
+    <div class="tab-pane fade show active" id="climate" role="tabpanel">
+        <div class="row">
+            <div class="col-lg-6">
+                <div class="card">
+                    <div class="card-header">温度变化趋势</div>
+                    <div class="card-body">
+                        <div id="tempTrendChart" class="chart-container"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="card">
+                    <div class="card-header">月度降水模式</div>
+                    <div class="card-body">
+                        <div id="precipPatternChart" class="chart-container"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">地区气候分布热力图</div>
+                    <div class="card-body">
+                        <div id="climateHeatmapChart" class="chart-container"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 土壤分布分析 -->
+    <div class="tab-pane fade" id="soil" role="tabpanel">
+        <div class="row">
+            <div class="col-lg-4">
+                <div class="card">
+                    <div class="card-header">土壤类型分布</div>
+                    <div class="card-body">
+                        <div id="soilTypePieChart" class="chart-container"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-8">
+                <div class="card">
+                    <div class="card-header">pH值分布统计</div>
+                    <div class="card-body">
+                        <div id="phDistChart" class="chart-container"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">县市土壤质量排名</div>
+                    <div class="card-body">
+                        <div id="countyQualityChart" class="chart-container"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 作物适宜性分析 -->
+    <div class="tab-pane fade" id="crop" role="tabpanel">
+        <div class="row">
+            <div class="col-lg-6">
+                <div class="card">
+                    <div class="card-header">作物适宜性分布</div>
+                    <div class="card-body">
+                        <div id="suitabilityDistChart" class="chart-container"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="card">
+                    <div class="card-header">作物种植优势雷达图</div>
+                    <div class="card-body">
+                        <div id="cropRadarChart" class="chart-container"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">种植限制因子分析</div>
+                    <div class="card-body">
+                        <div id="limitingFactorsChart" class="chart-container"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 区划优化建议 -->
+    <div class="tab-pane fade" id="zoning" role="tabpanel">
+        <div class="row">
+            <div class="col-lg-6">
+                <div class="card">
+                    <div class="card-header">区划优化分布图</div>
+                    <div class="card-body">
+                        <div id="zoningScatterChart" class="chart-container"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="card">
+                    <div class="card-header">最佳种植区域分布</div>
+                    <div class="card-body">
+                        <div id="optimizationMapChart" class="chart-container"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

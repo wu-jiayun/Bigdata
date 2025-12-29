@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>温度分析 - 湖南省农业分析系统</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+        }
+        .navbar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .chart-card {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            padding: 20px;
+        }
+        .chart-container {
+            width: 100%;
+            height: 400px;
+        }
+        .btn-back {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <!-- 导航栏 -->
+    <nav class="navbar navbar-dark">
+        <div class="container-fluid">
+            <span class="navbar-brand">🌡️ 温度分析</span>
+            <a href="/" class="btn btn-back">← 返回主页</a>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <!-- 月度温度趋势 -->
+        <div class="chart-card">
+            <h5 class="card-title">📈 月度温度变化趋势</h5>
+            <div id="monthlyTempChart" class="chart-container"></div>
+        </div>
+
+        <!-- 年度温度趋势 -->
+        <div class="chart-card">
+            <h5 class="card-title">📊 年度温度趋势</h5>
+            <div id="annualTempChart" class="chart-container"></div>
+        </div>
+
+        <!-- 季节温度对比 -->
+        <div class="chart-card">
+            <h5 class="card-title">🔄 季节温度对比</h5>
+            <div id="seasonalTempChart" class="chart-container"></div>
+        </div>
+    </div>
+
+    <script>
+        console.log('🌡️ 温度分析页面启动');
+
+        // 初始化图表
+        function initCharts() {
+            console.log('📊 初始化温度分析图表');
+            
+            // 月度温度趋势图
+            const monthlyChart = echarts.init(document.getElementById('monthlyTempChart'));
+            
+            // 年度温度趋势图
+            const annualChart = echarts.init(document.getElementById('annualTempChart'));
+            
+            // 季节温度对比图
+            const seasonalChart = echarts.init(document.getElementById('seasonalTempChart'));
+            
+            return { monthlyChart, annualChart, seasonalChart };
+        }
+
+        // 加载温度数据
+        async function loadTemperatureData() {
+            console.log('🔄 加载温度数据');
+            
+            try {
+                const response = await fetch('/api/echarts/climate_trends');
+                const result = await response.json();
+                
+                if (result.status === 'success') {
+                    const charts = initCharts();
+                    
+                    // 设置月度温度趋势
+                    if (result.charts.temperature_trend) {
+                        const tempData = result.charts.temperature_trend;
+                        charts.monthlyChart.setOption({
+                            title: { text: tempData.title, left: 'center' },
+                            tooltip: { trigger: 'axis' },
+                            xAxis: { 
+                                type: 'category',
+                                data: tempData.xAxis
+                            },
+                            yAxis: { 
+                                type: 'value',
+                                name: '温度(°C)'
+                            },
+                            series: tempData.series
+                        });
+                        console.log('✅ 月度温度图表加载成功');
+                    }
+                    
+                    // 设置年度温度趋势
+                    if (result.charts.annual_trend) {
+                        const annualData = result.charts.annual_trend;
+                        charts.annualChart.setOption({
+                            title: { text: annualData.title, left: 'center' },
+                            tooltip: { trigger: 'axis' },
+                            xAxis: { 
+                                type: 'category',
+                                data: annualData.xAxis
+                            },
+                            yAxis: { 
+                                type: 'value',
+                                name: '温度(°C)'
+                            },
+                            series: annualData.series
+                        });
+                        console.log('✅ 年度温度图表加载成功');
+                    }
+                    
+                    // 设置季节温度对比
+                    if (result.charts.seasonal_comparison) {
+                        const seasonalData = result.charts.seasonal_comparison;
+                        charts.seasonalChart.setOption({
+                            title: { text: seasonalData.title, left: 'center' },
+                            tooltip: { trigger: 'item' },
+                            series: [{
+                                type: 'pie',
+                                radius: '60%',
+                                data: seasonalData.data
+                            }]
+                        });
+                        console.log('✅ 季节温度图表加载成功');
+                    }
+                    
+                } else {
+                    console.error('❌ 温度数据加载失败:', result.message);
+                    alert('温度数据加载失败，请先运行系统分析');
+                }
+            } catch (error) {
+                console.error('❌ 温度数据请求异常:', error);
+                alert('无法连接到服务器，请检查网络连接');
+            }
+        }
+
+        // 页面加载完成
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('📄 温度分析页面加载完成');
+            
+            // 延迟加载数据，确保ECharts完全加载
+            setTimeout(loadTemperatureData, 1000);
+        });
+
+        // 窗口大小改变时调整图表
+        window.addEventListener('resize', function() {
+            const charts = document.querySelectorAll('.chart-container');
+            charts.forEach(container => {
+                const chart = echarts.getInstanceByDom(container);
+                if (chart) {
+                    chart.resize();
+                }
+            });
+        });
+    </script>
+</body>
+</html>

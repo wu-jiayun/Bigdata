@@ -1,0 +1,173 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "长沙市",
+        "cp": [112.982279, 28.19409],
+        "childNum": 1
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[112.8, 28.0], [113.2, 28.0], [113.2, 28.4], [112.8, 28.4], [112.8, 28.0]]]
+      }
+    },
+    {
+      "type": "Feature", 
+      "properties": {
+        "name": "株洲市",
+        "cp": [113.151737, 27.835806],
+        "childNum": 1
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[113.0, 27.6], [113.4, 27.6], [113.4, 28.0], [113.0, 28.0], [113.0, 27.6]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "湘潭市", 
+        "cp": [112.944052, 27.82973],
+        "childNum": 1
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[112.7, 27.6], [113.1, 27.6], [113.1, 28.0], [112.7, 28.0], [112.7, 27.6]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "衡阳市",
+        "cp": [112.607693, 26.900358],
+        "childNum": 1
+      },
+      "geometry": {
+        "type": "Polygon", 
+        "coordinates": [[[112.3, 26.6], [112.9, 26.6], [112.9, 27.2], [112.3, 27.2], [112.3, 26.6]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "邵阳市",
+        "cp": [111.467859, 27.237842],
+        "childNum": 1
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[111.2, 27.0], [111.7, 27.0], [111.7, 27.5], [111.2, 27.5], [111.2, 27.0]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "岳阳市",
+        "cp": [113.132855, 29.37029],
+        "childNum": 1
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[112.9, 29.1], [113.4, 29.1], [113.4, 29.6], [112.9, 29.6], [112.9, 29.1]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "常德市",
+        "cp": [111.691347, 29.040225],
+        "childNum": 1
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[111.4, 28.8], [111.9, 28.8], [111.9, 29.3], [111.4, 29.3], [111.4, 28.8]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "张家界市",
+        "cp": [110.479921, 29.127401],
+        "childNum": 1
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[110.2, 28.9], [110.7, 28.9], [110.7, 29.4], [110.2, 29.4], [110.2, 29.4]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "益阳市",
+        "cp": [112.355042, 28.570066],
+        "childNum": 1
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[112.1, 28.3], [112.6, 28.3], [112.6, 28.8], [112.1, 28.8], [112.1, 28.3]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "郴州市",
+        "cp": [113.032067, 25.793589],
+        "childNum": 1
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[112.8, 25.5], [113.3, 25.5], [113.3, 26.1], [112.8, 26.1], [112.8, 25.5]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "永州市",
+        "cp": [111.608019, 26.434516],
+        "childNum": 1
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[111.3, 26.1], [111.9, 26.1], [111.9, 26.8], [111.3, 26.8], [111.3, 26.1]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "怀化市",
+        "cp": [110.001570, 27.569996],
+        "childNum": 1
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[109.7, 27.3], [110.3, 27.3], [110.3, 27.9], [109.7, 27.9], [109.7, 27.3]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "娄底市",
+        "cp": [112.008497, 27.728136],
+        "childNum": 1
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[111.7, 27.4], [112.3, 27.4], [112.3, 28.0], [111.7, 28.0], [111.7, 27.4]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "湘西州",
+        "cp": [109.739735, 28.314296],
+        "childNum": 1
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[109.4, 28.0], [110.1, 28.0], [110.1, 28.6], [109.4, 28.6], [109.4, 28.0]]]
+      }
+    }
+  ]
+}

@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>最小ECharts测试</title>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <style>
+        .chart-container {
+            width: 600px;
+            height: 400px;
+            border: 2px solid red;
+            margin: 20px;
+            background-color: #f0f0f0;
+        }
+    </style>
+</head>
+<body>
+    <h1>最小ECharts测试</h1>
+    <div id="testChart" class="chart-container"></div>
+    
+    <script>
+        console.log('开始最小测试...');
+        
+        // 检查ECharts
+        if (typeof echarts === 'undefined') {
+            console.error('ECharts未加载');
+            document.body.innerHTML += '<p style="color:red;">ECharts未加载</p>';
+        } else {
+            console.log('ECharts已加载，版本:', echarts.version);
+            document.body.innerHTML += '<p style="color:green;">ECharts已加载，版本: ' + echarts.version + '</p>';
+        }
+        
+        // 获取容器
+        const container = document.getElementById('testChart');
+        if (!container) {
+            console.error('容器不存在');
+            document.body.innerHTML += '<p style="color:red;">容器不存在</p>';
+        } else {
+            console.log('容器存在，尺寸:', container.offsetWidth, 'x', container.offsetHeight);
+            document.body.innerHTML += '<p style="color:green;">容器存在，尺寸: ' + container.offsetWidth + 'x' + container.offsetHeight + '</p>';
+        }
+        
+        // 初始化图表
+        try {
+            const chart = echarts.init(container);
+            console.log('图表实例创建成功');
+            document.body.innerHTML += '<p style="color:green;">图表实例创建成功</p>';
+            
+            const option = {
+                title: {
+                    text: '测试图表'
+                },
+                tooltip: {},
+                xAxis: {
+                    data: ['衬衫', '羊毛衫', '雪纺衫', '裤子', '高跟鞋', '袜子']
+                },
+                yAxis: {},
+                series: [{
+                    name: '销量',
+                    type: 'bar',
+                    data: [5, 20, 36, 10, 10, 20]
+                }]
+            };
+            
+            chart.setOption(option);
+            console.log('图表选项设置成功');
+            document.body.innerHTML += '<p style="color:green;">图表选项设置成功</p>';
+            
+        } catch (error) {
+            console.error('图表初始化失败:', error);
+            document.body.innerHTML += '<p style="color:red;">图表初始化失败: ' + error.message + '</p>';
+        }
+    </script>
+</body>
+</html>

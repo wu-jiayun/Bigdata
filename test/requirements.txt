@@ -1,0 +1,23 @@
+# 湖南省农业种植适宜性区划分析系统 - Python依赖包
+# 核心Web框架
+Flask==2.3.3
+
+# 数据库连接
+PyMySQL==1.1.0
+
+# 数据处理和分析
+pandas==2.0.3
+numpy==1.24.3
+
+# 文档生成（可选）
+python-docx==1.1.0
+
+# HTTP请求库（用于联网数据获取）
+requests==2.31.0
+
+# 日期时间处理
+python-dateutil==2.8.2
+
+# 系统工具
+setuptools==68.0.00
+Werkzeug>=2.0.0

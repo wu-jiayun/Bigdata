@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>沃土规划师 - Spark农业分析系统</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <!-- ECharts -->
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    
+    <style>
+        .navbar-brand {
+            font-weight: bold;
+            color: #2E8B57 !important;
+        }
+        
+        .card {
+            border: none;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        
+        .card-header {
+            background: linear-gradient(135deg, #2E8B57, #32CD32);
+            color: white;
+            font-weight: bold;
+        }
+        
+        .chart-container {
+            width: 100%;
+            height: 400px;
+            margin: 20px 0;
+            min-height: 400px;
+            position: relative;
+            border: 1px solid #ddd;
+        }
+        
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        
+        .status-ready { 
+            background-color: #28a745; 
+        }
+        
+        .status-loading { 
+            background-color: #ffc107; 
+        }
+        
+        .status-error { 
+            background-color: #dc3545; 
+        }
+        
+        .btn-spark { 
+            background: linear-gradient(135deg, #FF6B6B, #4ECDC4);
+            border: none;
+            color: white;
+        }
+        
+        .btn-spark:hover {
+            background: linear-gradient(135deg, #FF5252, #26C6DA);
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <!-- 导航栏 -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-success">
+        <div class="container">
+            <a class="navbar-brand" href="#">
+                <i class="fas fa-seedling me-2"></i>沃土规划师 - Spark农业分析系统
+            </a>
+            <div class="navbar-nav ms-auto">
+                <span class="navbar-text">
+                    <span id="systemStatus" class="status-indicator status-loading"></span>
+                    <span id="statusText">系统状态: 未初始化</span>
+                </span>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid mt-4">
+        <!-- 控制面板 -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <i class="fas fa-cogs me-2"></i>系统控制面板
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <button id="initSystemBtn" class="btn btn-spark btn-lg me-3">
+                                    <i class="fas fa-rocket me-2"></i>初始化Spark系统
+                                </button>
+                            </div>
+                            <div class="col-md-6">
+                                <div id="systemInfo" class="alert alert-info">
+                                    <i class="fas fa-info-circle me-2"></i>
+                                    请先初始化Spark系统以连接MySQL数据库
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- 分析控制区域 -->
+                        <div class="row mt-3">
+                            <div class="col-md-6">
+                                <button id="runAnalysisBtn" class="btn btn-success btn-lg w-100" disabled>
+                                    <i class="fas fa-chart-line me-2"></i>运行综合分析
+                                </button>
+                            </div>
+                            <div class="col-md-6">
+                                <div id="analysisInfo" class="alert alert-secondary">
+                                    <i class="fas fa-info-circle me-2"></i>
+                                    请先初始化系统，然后运行综合分析
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 导航标签 -->
+        <ul class="nav nav-tabs" id="chartTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="climate-tab" data-bs-toggle="tab" data-bs-target="#climate" type="button" role="tab">
+                    <i class="fas fa-thermometer-half me-2"></i>气候趋势分析
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="soil-tab" data-bs-toggle="tab" data-bs-target="#soil" type="button" role="tab">
+                    <i class="fas fa-mountain me-2"></i>土壤分布分析
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="crop-tab" data-bs-toggle="tab" data-bs-target="#crop" type="button" role="tab">
+                    <i class="fas fa-seedling me-2"></i>作物适宜性分析
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="zoning-tab" data-bs-toggle="tab" data-bs-target="#zoning" type="button" role="tab">
+                    <i class="fas fa-map me-2"></i>区划优化建议
+                </button>
+            </li>
+        </ul>
+
+        <!-- 分析结果内容 -->
+        <div class="tab-content mt-4" id="chartTabsContent">
+            <!-- 气候分析标签页 -->
+            <div class="tab-pane fade show active" id="climate" role="tabpanel">
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="card">
+                            <div class="card-header">月度温度变化趋势</div>
+                            <div class="card-body">
+                                <div id="tempTrendChart" class="chart-container"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card">
+                            <div class="card-header">年度温度趋势</div>
+                            <div class="card-body">
+                                <div id="precipPatternChart" class="chart-container"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card">
+                            <div class="card-header">季节温度对比</div>
+                            <div class="card-body">
+                                <div id="climateHeatmapChart" class="chart-container"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 土壤分析标签页 -->
+            <div class="tab-pane fade" id="soil" role="tabpanel">
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="card">
+                            <div class="card-header">土壤类型分布</div>
+                            <div class="card-body">
+                                <div id="soilTypePieChart" class="chart-container"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card">
+                            <div class="card-header">pH值分布</div>
+                            <div class="card-body">
+                                <div id="phDistChart" class="chart-container"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card">
+                            <div class="card-header">县市土壤质量排名</div>
+                            <div class="card-body">
+                                <div id="countyQualityChart" class="chart-container"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 作物分析标签页 -->
+            <div class="tab-pane fade" id="crop" role="tabpanel">
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="card">
+                            <div class="card-header">作物分类分布</div>
+                            <div class="card-body">
+                                <div id="suitabilityDistChart" class="chart-container"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card">
+                            <div class="card-header">作物温度需求</div>
+                            <div class="card-body">
+                                <div id="cropRadarChart" class="chart-container"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card">
+                            <div class="card-header">作物pH适应性</div>
+                            <div class="card-body">
+                                <div id="limitingFactorsChart" class="chart-container"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 区划分析标签页 -->
+            <div class="tab-pane fade" id="zoning" role="tabpanel">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header">区划优化分布</div>
+                            <div class="card-body">
+                                <div id="zoningScatterChart" class="chart-container"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header">最佳种植区域</div>
+                            <div class="card-body">
+                                <div id="optimizationMapChart" class="chart-container"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- 内联JavaScript -->
+    <script>
+        console.log('🚀 开始加载完整版系统...');
+        
+        // 全局变量
+        window.SparkCore = {
+            charts: {},
+            systemStatus: 'uninitialized'
+        };
+        
+        // 初始化图表容器
+        function initCharts() {
+            const chartIds = [
+                'tempTrendChart', 'precipPatternChart', 'climateHeatmapChart',
+                'soilTypePieChart', 'phDistChart', 'countyQualityChart',
+                'suitabilityDistChart', 'cropRadarChart', 'limitingFactorsChart',
+                'zoningScatterChart', 'optimizationMapChart'
+            ];
+
+            console.log('🔄 开始初始化图表容器...');
+            
+            chartIds.forEach(id => {
+                const element = document.getElementById(id);
+                if (element) {
+                    const rect = element.getBoundingClientRect();
+                    console.log(`📊 容器 ${id}: ${rect.width}x${rect.height}`);
+                    
+                    if (rect.width > 0 && rect.height > 0) {
+                        try {
+                            window.SparkCore.charts[id] = echarts.init(element);
+                            console.log(`✅ ${id} 初始化成功`);
+                        } catch (error) {
+                            console.error(`❌ ${id} 初始化失败:`, error);
+                        }
+                    } else {
+                        console.warn(`⚠️ ${id} 容器尺寸为0，延迟初始化`);
+                        setTimeout(() => {
+                            const newRect = element.getBoundingClientRect();
+                            if (newRect.width > 0 && newRect.height > 0) {
+                                window.SparkCore.charts[id] = echarts.init(element);
+                                console.log(`✅ ${id} 延迟初始化成功`);
+                            }
+                        }, 1000);
+                    }
+                } else {
+                    console.error(`❌ 找不到容器: ${id}`);
+                }
+            });
+            
+            console.log(`📊 图表容器初始化完成，成功: ${Object.keys(window.SparkCore.charts).length}/${chartIds.length}`);
+        }
+        
+        // 更新系统状态
+        function updateSystemStatus(status, message) {
+            const statusIndicator = document.getElementById('systemStatus');
+            const statusText = document.getElementById('statusText');
+            
+            if (statusIndicator && statusText) {
+                statusIndicator.className = `status-indicator status-${status}`;
+                statusText.textContent = `系统状态: ${message}`;
+                window.SparkCore.systemStatus = status;
+            }
+        }
+        
+        // 初始化系统
+        async function initializeSystem() {
+            console.log('🚀 开始初始化系统...');
+            updateSystemStatus('loading', '初始化中...');
+            
+            try {
+                const response = await fetch('/api/system/initialize', { method: 'POST' });
+                const result = await response.json();
+                
+                if (result.status === 'success') {
+                    updateSystemStatus('ready', '系统就绪');
+                    document.getElementById('systemInfo').innerHTML = 
+                        `<i class="fas fa-check-circle me-2"></i>系统初始化成功！数据摘要: ${JSON.stringify(result.data_summary)}`;
+                    document.getElementById('runAnalysisBtn').disabled = false;
+                    console.log('✅ 系统初始化成功');
+                } else {
+                    updateSystemStatus('error', '初始化失败');
+                    document.getElementById('systemInfo').innerHTML = 
+                        `<i class="fas fa-exclamation-triangle me-2"></i>初始化失败: ${result.message}`;
+                    console.error('❌ 系统初始化失败:', result.message);
+                }
+            } catch (error) {
+                updateSystemStatus('error', '连接失败');
+                console.error('❌ 系统初始化异常:', error);
+            }
+        }
+        
+        // 运行分析
+        async function runAnalysis() {
+            console.log('🔬 开始运行分析...');
+            updateSystemStatus('loading', '分析中...');
+            
+            try {
+                const response = await fetch('/api/analysis/run', { method: 'POST' });
+                const result = await response.json();
+                
+                if (result.status === 'success') {
+                    updateSystemStatus('ready', '分析完成');
+                    document.getElementById('analysisInfo').innerHTML = 
+                        '<i class="fas fa-check-circle me-2"></i>分析完成！正在加载图表...';
+                    
+                    // 加载所有图表
+                    await loadAllCharts();
+                    console.log('✅ 分析完成，图表已加载');
+                } else {
+                    updateSystemStatus('error', '分析失败');
+                    document.getElementById('analysisInfo').innerHTML = 
+                        `<i class="fas fa-exclamation-triangle me-2"></i>分析失败: ${result.message}`;
+                    console.error('❌ 分析失败:', result.message);
+                }
+            } catch (error) {
+                updateSystemStatus('error', '分析异常');
+                console.error('❌ 分析异常:', error);
+            }
+        }
+        
+        // 加载所有图表
+        async function loadAllCharts() {
+            console.log('📊 开始加载所有图表...');
+            
+            try {
+                // 加载气候图表
+                await loadClimateCharts();
+                // 加载土壤图表  
+                await loadSoilCharts();
+                // 加载作物图表
+                await loadCropCharts();
+                // 加载区划图表
+                await loadZoningCharts();
+                
+                console.log('🎉 所有图表加载完成');
+            } catch (error) {
+                console.error('❌ 图表加载失败:', error);
+            }
+        }
+        
+        // 加载气候图表
+        async function loadClimateCharts() {
+            const response = await fetch('/api/echarts/climate_trends');
+            const result = await response.json();
+            
+            if (result.status === 'success' && window.SparkCore.charts.tempTrendChart) {
+                const charts_data = result.charts;
+                
+                // 设置温度趋势图
+                if (charts_data.temperature_trend) {
+                    window.SparkCore.charts.tempTrendChart.setOption({
+                        title: { text: '月度温度变化趋势', left: 'center' },
+                        tooltip: { trigger: 'axis' },
+                        xAxis: { type: 'category', data: charts_data.temperature_trend.xAxis || [] },
+                        yAxis: { type: 'value', name: '温度(°C)' },
+                        series: charts_data.temperature_trend.series || []
+                    });
+                }
+                
+                console.log('✅ 气候图表加载完成');
+            }
+        }
+        
+        // 加载土壤图表
+        async function loadSoilCharts() {
+            const response = await fetch('/api/echarts/soil_analysis');
+            const result = await response.json();
+            
+            if (result.status === 'success') {
+                console.log('✅ 土壤图表加载完成');
+            }
+        }
+        
+        // 加载作物图表
+        async function loadCropCharts() {
+            const response = await fetch('/api/echarts/crop_suitability');
+            const result = await response.json();
+            
+            if (result.status === 'success') {
+                console.log('✅ 作物图表加载完成');
+            }
+        }
+        
+        // 加载区划图表
+        async function loadZoningCharts() {
+            const response = await fetch('/api/echarts/zoning_optimization');
+            const result = await response.json();
+            
+            if (result.status === 'success') {
+                console.log('✅ 区划图表加载完成');
+            }
+        }
+        
+        // 页面加载完成后初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('📄 DOM加载完成');
+            
+            // 初始化图表容器
+            setTimeout(() => {
+                initCharts();
+            }, 500);
+            
+            // 绑定按钮事件
+            const initBtn = document.getElementById('initSystemBtn');
+            const runBtn = document.getElementById('runAnalysisBtn');
+            
+            if (initBtn) {
+                initBtn.addEventListener('click', initializeSystem);
+                console.log('✅ 初始化按钮事件绑定成功');
+            }
+            
+            if (runBtn) {
+                runBtn.addEventListener('click', runAnalysis);
+                console.log('✅ 分析按钮事件绑定成功');
+            }
+            
+            console.log('🎉 系统初始化完成');
+        });
+        
+        // 窗口大小改变时重新调整图表
+        window.addEventListener('resize', function() {
+            Object.values(window.SparkCore.charts).forEach(chart => {
+                if (chart && chart.resize) {
+                    chart.resize();
+                }
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>规划方案报告生成 - 湖南省农业分析系统</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+        }
+        .navbar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .card {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            border: none;
+        }
+        .btn-back {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            color: white;
+        }
+        .btn-generate {
+            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+            border: none;
+            color: white;
+            padding: 15px 30px;
+            font-size: 1.1rem;
+        }
+        .report-preview {
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 20px;
+            background: white;
+            max-height: 600px;
+            overflow-y: auto;
+        }
+        .progress-step {
+            display: flex;
+            align-items: center;
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 8px;
+            background: #f8f9fa;
+        }
+        .progress-step.active {
+            background: #e3f2fd;
+            border-left: 4px solid #2196F3;
+        }
+        .progress-step.completed {
+            background: #e8f5e8;
+            border-left: 4px solid #4CAF50;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-dark">
+        <div class="container-fluid">
+            <span class="navbar-brand">📋 规划方案报告生成</span>
+            <a href="/" class="btn btn-back">← 返回主页</a>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <!-- 报告配置 -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">⚙️ 报告配置</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <label class="form-label">报告标题</label>
+                        <input type="text" class="form-control" id="reportTitle" value="湖南省农业种植适宜性区划规划方案">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">作物类型</label>
+                        <select class="form-select" id="cropType">
+                            <option value="rice">🍚 水稻</option>
+                            <option value="corn">🌽 玉米</option>
+                            <option value="soybean">🫘 大豆</option>
+                            <option value="wheat">🌾 小麦</option>
+                            <option value="cotton">🌸 棉花</option>
+                            <option value="rapeseed">🌻 油菜</option>
+                            <option value="peanut">🥜 花生</option>
+                            <option value="sweet_potato">🍠 红薯</option>
+                            <option value="tobacco">🚬 烟草</option>
+                            <option value="tea">🍵 茶叶</option>
+                            <option value="citrus">🍊 柑橘</option>
+                            <option value="vegetables">🥬 蔬菜</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="row mt-3">
+                    <div class="col-md-6">
+                        <label class="form-label">导出格式</label>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="exportPDF" checked>
+                            <label class="form-check-label" for="exportPDF">📄 PDF格式</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="exportWord">
+                            <label class="form-check-label" for="exportWord">📝 Word格式</label>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">包含内容</label>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="includeMap" checked>
+                            <label class="form-check-label" for="includeMap">🗺️ 区划图</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="includeTable" checked>
+                            <label class="form-check-label" for="includeTable">📊 数据表格</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="includeRecommendations" checked>
+                            <label class="form-check-label" for="includeRecommendations">💡 规划建议</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="text-center mt-4">
+                    <button class="btn btn-generate" onclick="generateReport()">📋 一键生成报告</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 生成进度 -->
+        <div class="card" id="progressCard" style="display: none;">
+            <div class="card-header">
+                <h5 class="card-title mb-0">🔄 生成进度</h5>
+            </div>
+            <div class="card-body">
+                <div id="progressSteps">
+                    <div class="progress-step" id="step1">
+                        <span class="me-2">📊</span>
+                        <span>收集分析数据</span>
+                    </div>
+                    <div class="progress-step" id="step2">
+                        <span class="me-2">🗺️</span>
+                        <span>生成区划图表</span>
+                    </div>
+                    <div class="progress-step" id="step3">
+                        <span class="me-2">📋</span>
+                        <span>编制数据表格</span>
+                    </div>
+                    <div class="progress-step" id="step4">
+                        <span class="me-2">💡</span>
+                        <span>生成规划建议</span>
+                    </div>
+                    <div class="progress-step" id="step5">
+                        <span class="me-2">📄</span>
+                        <span>导出报告文件</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 报告预览 -->
+        <div class="card" id="previewCard" style="display: none;">
+            <div class="card-header">
+                <h5 class="card-title mb-0">👁️ 报告预览</h5>
+            </div>
+            <div class="card-body">
+                <div class="report-preview" id="reportPreview">
+                    <!-- 报告内容将在这里显示 -->
+                </div>
+                
+                <!-- 联网数据展示区域 -->
+                <div id="onlineDataSection" style="display: none;">
+                    <h4>🌐 实时联网数据</h4>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="card border-primary">
+                                <div class="card-header bg-primary text-white">
+                                    <h6 class="mb-0">📈 市场行情</h6>
+                                </div>
+                                <div class="card-body" id="marketData">
+                                    <!-- 市场数据 -->
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card border-success">
+                                <div class="card-header bg-success text-white">
+                                    <h6 class="mb-0">🌤️ 天气预报</h6>
+                                </div>
+                                <div class="card-body" id="weatherData">
+                                    <!-- 天气数据 -->
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card border-info">
+                                <div class="card-header bg-info text-white">
+                                    <h6 class="mb-0">📊 产业分析</h6>
+                                </div>
+                                <div class="card-body" id="industryData">
+                                    <!-- 产业数据 -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row mt-3">
+                        <div class="col-md-6">
+                            <div class="card border-warning">
+                                <div class="card-header bg-warning text-dark">
+                                    <h6 class="mb-0">📋 政策动态</h6>
+                                </div>
+                                <div class="card-body" id="policyData">
+                                    <!-- 政策数据 -->
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card border-secondary">
+                                <div class="card-header bg-secondary text-white">
+                                    <h6 class="mb-0">🔬 技术趋势</h6>
+                                </div>
+                                <div class="card-body" id="technologyData">
+                                    <!-- 技术数据 -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 县市详情数据展示区域 -->
+                <div id="countyDetailsSection" style="display: none;">
+                    <h4>🏘️ 县市详情数据</h4>
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover" id="countyDetailsTable">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>县市名称</th>
+                                    <th>适宜性评分</th>
+                                    <th>适宜性等级</th>
+                                    <th>预估面积(km²)</th>
+                                    <th>温度适宜度</th>
+                                    <th>土壤适宜度</th>
+                                    <th>水分适宜度</th>
+                                </tr>
+                            </thead>
+                            <tbody id="countyDetailsBody">
+                                <!-- 县市数据将通过JavaScript动态填充 -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="text-center mt-3">
+                    <button class="btn btn-success btn-lg" onclick="downloadCompleteReport()">
+                        📄 下载完整报告 (.txt)
+                    </button>
+                </div>
+                
+            </div>
+        </div>
+    </div>
+
+    <script>
+        console.log('📋 规划方案报告生成页面启动');
+
+        async function generateReport() {
+            console.log('📋 开始生成报告');
+            
+            const config = {
+                title: document.getElementById('reportTitle').value,
+                cropType: document.getElementById('cropType').value,
+                exportPDF: document.getElementById('exportPDF').checked,
+                exportWord: document.getElementById('exportWord').checked,
+                includeMap: document.getElementById('includeMap').checked,
+                includeTable: document.getElementById('includeTable').checked,
+                includeRecommendations: document.getElementById('includeRecommendations').checked
+            };
+
+            document.getElementById('progressCard').style.display = 'block';
+            
+            try {
+                // 步骤1: 收集数据
+                updateProgress('step1', 'active');
+                await sleep(1000);
+                
+                const response = await fetch('/api/report/generate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(config)
+                });
+                
+                updateProgress('step1', 'completed');
+                updateProgress('step2', 'active');
+                await sleep(1000);
+                
+                const result = await response.json();
+                
+                if (result.status === 'success') {
+                    // 步骤2-5: 逐步完成
+                    for (let i = 2; i <= 5; i++) {
+                        updateProgress(`step${i}`, 'completed');
+                        if (i < 5) updateProgress(`step${i+1}`, 'active');
+                        await sleep(800);
+                    }
+                    
+                    displayReportPreview(result.report);
+                    document.getElementById('previewCard').style.display = 'block';
+                    console.log('✅ 报告生成成功');
+                } else {
+                    alert('报告生成失败: ' + result.message);
+                }
+            } catch (error) {
+                console.error('❌ 报告生成异常:', error);
+                alert('报告生成失败，请检查网络连接');
+            }
+        }
+
+        function updateProgress(stepId, status) {
+            const step = document.getElementById(stepId);
+            step.className = `progress-step ${status}`;
+        }
+
+        function displayReportPreview(report) {
+            const preview = document.getElementById('reportPreview');
+            
+            // 显示基础报告内容
+            preview.innerHTML = `
+                <div class="text-center mb-4">
+                    <h2>${report.title}</h2>
+                    <p class="text-muted">生成时间: ${report.generation_time || new Date().toLocaleString()}</p>
+                    <span class="badge bg-success">${report.data_source || '本地数据'}</span>
+                </div>
+                
+                <h3>📊 执行摘要</h3>
+                <div class="alert alert-primary">
+                    <pre style="white-space: pre-wrap; font-family: inherit;">${report.summary}</pre>
+                </div>
+                
+                <h3>🗺️ 区划分析</h3>
+                <div class="row">
+                    <div class="col-md-6">
+                        <h5>适宜性分布</h5>
+                        <ul>
+                            <li>最适宜区: ${report.statistics.optimal.count || 0}个县市 (${report.statistics.optimal.percentage || 0}%)</li>
+                            <li>适宜区: ${report.statistics.suitable.count || 0}个县市 (${report.statistics.suitable.percentage || 0}%)</li>
+                            <li>较适宜区: ${report.statistics.marginal.count || 0}个县市 (${report.statistics.marginal.percentage || 0}%)</li>
+                            <li>不适宜区: ${report.statistics.unsuitable.count || 0}个县市 (${report.statistics.unsuitable.percentage || 0}%)</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h5>面积统计</h5>
+                        <ul>
+                            <li>最适宜区: ${report.statistics.optimal.area || 0}km²</li>
+                            <li>适宜区: ${report.statistics.suitable.area || 0}km²</li>
+                            <li>较适宜区: ${report.statistics.marginal.area || 0}km²</li>
+                            <li>不适宜区: ${report.statistics.unsuitable.area || 0}km²</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <h3>💡 规划建议</h3>
+                <div class="alert alert-warning">
+                    ${report.recommendations.map(rec => `<p>${rec}</p>`).join('')}
+                </div>
+                
+                <h3>📋 结论</h3>
+                <div class="alert alert-success">
+                    <pre style="white-space: pre-wrap; font-family: inherit;">${report.conclusion}</pre>
+                </div>
+            `;
+            
+            // 显示联网数据（如果有）
+            if (report.online_data) {
+                displayOnlineData(report.online_data);
+                document.getElementById('onlineDataSection').style.display = 'block';
+            }
+            
+            // 显示详细分析（如果有）
+            if (report.detailed_analysis) {
+                displayDetailedAnalysis(report.detailed_analysis);
+            }
+            
+            // 显示县市详情数据
+            if (report.county_details) {
+                displayCountyDetails(report.county_details);
+            }
+            
+            // 存储完整报告数据供下载使用
+            window.currentReportData = report;
+        }
+        
+        function displayOnlineData(onlineData) {
+            // 市场数据
+            document.getElementById('marketData').innerHTML = `
+                <p><strong>当前价格:</strong> ${onlineData.market_price.current}元/公斤</p>
+                <p><strong>价格趋势:</strong> <span class="badge ${onlineData.market_price.trend === '上涨' ? 'bg-success' : 'bg-primary'}">${onlineData.market_price.trend}</span></p>
+                <p><small class="text-muted">更新时间: ${onlineData.market_price.update_time}</small></p>
+            `;
+            
+            // 天气数据
+            document.getElementById('weatherData').innerHTML = `
+                <p><strong>温度:</strong> ${onlineData.weather_forecast.temperature}</p>
+                <p><strong>降水:</strong> ${onlineData.weather_forecast.precipitation}</p>
+                <p><strong>条件:</strong> <span class="badge ${onlineData.weather_forecast.conditions === '适宜种植' ? 'bg-success' : 'bg-warning'}">${onlineData.weather_forecast.conditions}</span></p>
+            `;
+            
+            // 产业数据
+            document.getElementById('industryData').innerHTML = `
+                <p><strong>种植面积:</strong> ${onlineData.industry_analysis.production_area}</p>
+                <p><strong>预期产量:</strong> ${onlineData.industry_analysis.yield_forecast}</p>
+                <p><strong>市场需求:</strong> <span class="badge bg-info">${onlineData.industry_analysis.market_demand}</span></p>
+            `;
+            
+            // 政策数据
+            document.getElementById('policyData').innerHTML = 
+                onlineData.policy_updates.map(policy => `<p>• ${policy}</p>`).join('');
+            
+            // 技术数据
+            document.getElementById('technologyData').innerHTML = 
+                onlineData.technology_trends.map(tech => `<p>• ${tech}</p>`).join('');
+        }
+        
+        function displayDetailedAnalysis(detailedAnalysis) {
+            // 在报告预览后添加详细分析
+            const preview = document.getElementById('reportPreview');
+            let analysisHtml = '<h3>🔍 详细分析</h3>';
+            
+            Object.keys(detailedAnalysis).forEach(key => {
+                const analysis = detailedAnalysis[key];
+                analysisHtml += `
+                    <div class="card mt-3">
+                        <div class="card-header">
+                            <h5>${analysis.title}</h5>
+                        </div>
+                        <div class="card-body">
+                            <pre style="white-space: pre-wrap; font-family: inherit;">${analysis.content}</pre>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            preview.innerHTML += analysisHtml;
+        }
+        
+        function displayCountyDetails(countyDetails) {
+            // 显示县市详情数据
+            const tbody = document.getElementById('countyDetailsBody');
+            tbody.innerHTML = '';
+            
+            countyDetails.forEach(county => {
+                const row = tbody.insertRow();
+                row.innerHTML = `
+                    <td><strong>${county.县市名称}</strong></td>
+                    <td><span class="badge ${getScoreBadgeClass(county.适宜性评分)}">${county.适宜性评分}</span></td>
+                    <td><span class="badge ${getLevelBadgeClass(county.适宜性等级)}">${county.适宜性等级}</span></td>
+                    <td>${county.预估面积平方公里}</td>
+                    <td>${county.温度适宜度}</td>
+                    <td>${county.土壤适宜度}</td>
+                    <td>${county.水分适宜度}</td>
+                `;
+            });
+            
+            document.getElementById('countyDetailsSection').style.display = 'block';
+        }
+        
+        function getScoreBadgeClass(score) {
+            if (score >= 80) return 'bg-success';
+            if (score >= 60) return 'bg-primary';
+            if (score >= 40) return 'bg-warning';
+            return 'bg-danger';
+        }
+        
+        function getLevelBadgeClass(level) {
+            switch(level) {
+                case '最适宜': return 'bg-success';
+                case '适宜': return 'bg-primary';
+                case '较适宜': return 'bg-warning';
+                case '不适宜': return 'bg-danger';
+                default: return 'bg-secondary';
+            }
+        }
+
+        function downloadReport(format) {
+            const config = {
+                title: document.getElementById('reportTitle').value,
+                cropType: document.getElementById('cropType').value,
+                format: format
+            };
+            
+            const link = document.createElement('a');
+            link.href = `/api/report/download?format=${format}&crop=${config.cropType}&title=${encodeURIComponent(config.title)}`;
+            link.download = `${config.title}.${format === 'pdf' ? 'pdf' : 'docx'}`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            console.log(`📄 下载${format.toUpperCase()}报告`);
+        }
+
+        async function downloadCompleteReport() {
+            console.log('📄 开始下载完整报告');
+            
+            if (!window.currentReportData) {
+                alert('请先生成报告再下载');
+                return;
+            }
+            
+            try {
+                // 显示加载状态
+                const downloadBtn = document.querySelector('button[onclick="downloadCompleteReport()"]');
+                const originalText = downloadBtn.innerHTML;
+                downloadBtn.innerHTML = '⏳ 生成中...';
+                downloadBtn.disabled = true;
+                
+                // 获取当前报告配置
+                const cropType = document.getElementById('cropType').value;
+                
+                // 发送导出请求
+                const response = await fetch('/api/report/export_data', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        cropType: cropType,
+                        format: 'txt',
+                        includeOnline: true
+                    })
+                });
+                
+                if (response.ok) {
+                    // 获取文件名
+                    const contentDisposition = response.headers.get('Content-Disposition');
+                    let filename = 'complete_report.txt';
+                    if (contentDisposition) {
+                        const matches = contentDisposition.match(/filename\*=UTF-8\'\'(.+)/);
+                        if (matches) {
+                            filename = decodeURIComponent(matches[1]);
+                        }
+                    }
+                    
+                    // 下载文件
+                    const blob = await response.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.download = filename;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    window.URL.revokeObjectURL(url);
+                    
+                    // 显示成功消息
+                    showDownloadSuccess(filename);
+                    
+                } else {
+                    const errorData = await response.json();
+                    throw new Error(errorData.message || '下载失败');
+                }
+                
+            } catch (error) {
+                console.error('❌ 报告下载失败:', error);
+                showDownloadError(error.message);
+            } finally {
+                // 恢复按钮状态
+                const downloadBtn = document.querySelector('button[onclick="downloadCompleteReport()"]');
+                downloadBtn.innerHTML = originalText;
+                downloadBtn.disabled = false;
+            }
+        }
+        
+        function showDownloadSuccess(filename) {
+            const alertHtml = `
+                <div class="alert alert-success alert-dismissible fade show mt-3" role="alert">
+                    <h6>✅ 完整报告下载成功！</h6>
+                    <p class="mb-1"><strong>文件名：</strong> ${filename}</p>
+                    <p class="mb-1"><strong>格式：</strong> 纯文本格式 (.txt)</p>
+                    <p class="mb-0"><strong>内容：</strong> 包含完整的区划分析数据和联网实时数据</p>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            `;
+            document.getElementById('previewCard').insertAdjacentHTML('afterend', alertHtml);
+        }
+        
+        function showDownloadError(message) {
+            const alertHtml = `
+                <div class="alert alert-danger alert-dismissible fade show mt-3" role="alert">
+                    <h6>❌ 报告下载失败</h6>
+                    <p class="mb-0"><strong>错误信息：</strong> ${message}</p>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            `;
+            document.getElementById('previewCard').insertAdjacentHTML('afterend', alertHtml);
+        }
+
+        function sleep(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+    </script>
+</body>
+</html>
