@@ -1,0 +1,298 @@
+/* 湖南省农业种植适宜性区划分析系统 - 主样式文件 */
+
+/* 基础样式重置 */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Microsoft YaHei', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    line-height: 1.6;
+    color: #333;
+    background-color: #f8f9fa;
+}
+
+/* 导航栏样式 */
+.navbar {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    padding: 1rem 0;
+}
+
+.navbar-brand {
+    color: white !important;
+    font-size: 1.5rem;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.navbar-brand:hover {
+    color: #f8f9fa !important;
+}
+
+/* 卡片样式 */
+.card {
+    border: none;
+    border-radius: 15px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    background: white;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+}
+
+.card-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 15px 15px 0 0 !important;
+    padding: 1rem 1.5rem;
+    border: none;
+}
+
+.card-body {
+    padding: 1.5rem;
+}
+
+/* 按钮样式 */
+.btn {
+    border-radius: 25px;
+    padding: 0.75rem 2rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    transition: all 0.3s ease;
+    border: none;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+}
+
+.btn-success {
+    background: linear-gradient(135deg, #56ab2f 0%, #a8e6cf 100%);
+    box-shadow: 0 4px 15px rgba(86, 171, 47, 0.4);
+}
+
+.btn-success:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(86, 171, 47, 0.6);
+}
+
+.btn-info {
+    background: linear-gradient(135deg, #74b9ff 0%, #0984e3 100%);
+    box-shadow: 0 4px 15px rgba(116, 185, 255, 0.4);
+}
+
+.btn-warning {
+    background: linear-gradient(135deg, #fdcb6e 0%, #e17055 100%);
+    box-shadow: 0 4px 15px rgba(253, 203, 110, 0.4);
+}
+
+.btn-danger {
+    background: linear-gradient(135deg, #fd79a8 0%, #e84393 100%);
+    box-shadow: 0 4px 15px rgba(253, 121, 168, 0.4);
+}
+
+/* 图表容器样式 */
+.chart-container {
+    background: white;
+    border-radius: 15px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+    min-height: 400px;
+}
+
+.chart-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #2d3436;
+    margin-bottom: 1rem;
+    text-align: center;
+}
+
+/* 加载动画 */
+.loading-spinner {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 3px solid rgba(255,255,255,.3);
+    border-radius: 50%;
+    border-top-color: #fff;
+    animation: spin 1s ease-in-out infinite;
+    margin-right: 10px;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* 状态指示器 */
+.status-indicator {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    margin-right: 8px;
+}
+
+.status-success { background-color: #00b894; }
+.status-warning { background-color: #fdcb6e; }
+.status-error { background-color: #e17055; }
+.status-info { background-color: #74b9ff; }
+
+/* 表格样式 */
+.table {
+    background: white;
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+}
+
+.table thead th {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    padding: 1rem;
+    font-weight: 600;
+}
+
+.table tbody td {
+    padding: 1rem;
+    border-color: #e9ecef;
+    vertical-align: middle;
+}
+
+.table-hover tbody tr:hover {
+    background-color: rgba(102, 126, 234, 0.05);
+}
+
+/* 徽章样式 */
+.badge {
+    border-radius: 20px;
+    padding: 0.5rem 1rem;
+    font-weight: 600;
+    font-size: 0.8rem;
+}
+
+/* 警告框样式 */
+.alert {
+    border: none;
+    border-radius: 15px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.alert-success {
+    background: linear-gradient(135deg, #d1f2eb 0%, #a8e6cf 100%);
+    color: #00b894;
+}
+
+.alert-info {
+    background: linear-gradient(135deg, #d6eaf8 0%, #aed6f1 100%);
+    color: #3498db;
+}
+
+.alert-warning {
+    background: linear-gradient(135deg, #fef9e7 0%, #fcf3cf 100%);
+    color: #f39c12;
+}
+
+.alert-danger {
+    background: linear-gradient(135deg, #fadbd8 0%, #f1948a 100%);
+    color: #e74c3c;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+    .card {
+        margin-bottom: 1rem;
+    }
+    
+    .btn {
+        padding: 0.5rem 1.5rem;
+        font-size: 0.9rem;
+    }
+    
+    .chart-container {
+        padding: 1rem;
+        min-height: 300px;
+    }
+    
+    .navbar-brand {
+        font-size: 1.2rem;
+    }
+}
+
+/* 动画效果 */
+.fade-in {
+    animation: fadeIn 0.5s ease-in;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.slide-up {
+    animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+    from { transform: translateY(30px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+/* 工具提示样式 */
+.tooltip-custom {
+    background: rgba(0,0,0,0.8);
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+}
+
+/* 进度条样式 */
+.progress {
+    height: 8px;
+    border-radius: 10px;
+    background-color: #e9ecef;
+    overflow: hidden;
+}
+
+.progress-bar {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 10px;
+    transition: width 0.6s ease;
+}
+
+/* 自定义滚动条 */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
+}
